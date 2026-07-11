@@ -27,11 +27,11 @@ function addConfigRow(pull = 160, stop = 110, bungee = 2, arm = 2, pin = 2) {
   tr.dataset.id = rowCount;
   
   tr.innerHTML = `
-    <td><input type="number" step="1" min="100" max="200" value="${pull}" class="inp-pull"></td>
-    <td><input type="number" step="1" min="90" max="120" value="${stop}" class="inp-stop"></td>
-    <td><input type="number" step="1" min="1" max="3" value="${bungee}" class="inp-bungee"></td>
-    <td><input type="number" step="1" min="1" max="3" value="${arm}" class="inp-arm"></td>
-    <td><input type="number" step="1" min="1" max="3" value="${pin}" class="inp-pin"></td>
+    <td><input type="number" step="0.1" min="90" max="200" value="${pull}" class="inp-pull"></td>
+    <td><input type="number" step="0.1" min="90" max="120" value="${stop}" class="inp-stop"></td>
+    <td><input type="number" step="0.1" min="1" max="5" value="${bungee}" class="inp-bungee"></td>
+    <td><input type="number" step="0.1" min="1" max="5" value="${arm}" class="inp-arm"></td>
+    <td><input type="number" step="0.1" min="1" max="5" value="${pin}" class="inp-pin"></td>
     <td><button class="btn delete" onclick="this.closest('tr').remove()">Remove</button></td>
   `;
   
@@ -46,9 +46,9 @@ function getAllConfigs() {
       id: tr.dataset.id,
       pullBackAngle: parseFloat(tr.querySelector('.inp-pull').value),
       stopAngle: parseFloat(tr.querySelector('.inp-stop').value),
-      bungeePosition: parseInt(tr.querySelector('.inp-bungee').value),
-      armHole: parseInt(tr.querySelector('.inp-arm').value),
-      pinElevation: parseInt(tr.querySelector('.inp-pin').value)
+      bungeePosition: parseFloat(tr.querySelector('.inp-bungee').value),
+      armHole: parseFloat(tr.querySelector('.inp-arm').value),
+      pinElevation: parseFloat(tr.querySelector('.inp-pin').value)
     });
   });
   return configs;
@@ -111,9 +111,9 @@ function animateSimultaneous(runs) {
     
     // Physics geometry to match drawing:
     const angleRad = run.config.stopAngle * (Math.PI / 180);
-    const placements = { 1: 0.6, 2: 0.8, 3: 1.0 };
     const armLengthPx = 150; 
-    const cupPx = armLengthPx * (placements[run.config.armHole] || 0.8);
+    const cupPlacement = 0.5 + (run.config.armHole * 0.1);
+    const cupPx = armLengthPx * cupPlacement;
     // Convert to meters using scale
     const scale = 20; 
     const cupM = cupPx / scale;

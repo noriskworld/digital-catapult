@@ -56,8 +56,7 @@ export class CatapultRenderer {
     this.ctx.stroke();
 
     // Draw cup
-    const placements = { 1: 0.6, 2: 0.8, 3: 1.0 };
-    const cupPlacement = placements[armHole] || 0.8;
+    const cupPlacement = 0.5 + (armHole * 0.1);
     const cupDist = armPx * cupPlacement;
     this.ctx.fillStyle = '#f59e0b';
     this.ctx.beginPath();
