@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Catapult Simulation</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <header>
+      <h1>Digital Catapult Simulation</h1>
+      <p>Simulate the non-linear physics of a catapult launch</p>
+    </header>
+
+    <main>
+      <section class="config-panel">
+        <h2>Input Parameters (Factors / X's)</h2>
+        <div class="table-container">
+          <table id="config-table">
+            <thead>
+              <tr>
+                <th>Pull-back Angle<br><small>(&deg;)</small></th>
+                <th>Tension<br><small>(N/m)</small></th>
+                <th>Arm Length<br><small>(m)</small></th>
+                <th>Proj. Mass<br><small>(kg)</small></th>
+                <th>Stop Angle<br><small>(&deg;)</small></th>
+                <th>Cup Placement<br><small>(ratio)</small></th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="config-tbody">
+              <!-- Rows added dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <button id="add-row-btn" class="btn">Add Configuration</button>
+      </section>
+
+      <section class="simulation-panel">
+        <div class="canvas-container">
+          <canvas id="sim-canvas" width="800" height="400"></canvas>
+        </div>
+        <div class="controls">
+          <button id="launch-btn" class="btn primary">Launch Selected</button>
+        </div>
+      </section>
+
+      <section class="results-panel">
+        <h2>Results (Responses / Y's)</h2>
+        <div class="table-container">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Config #</th>
+                <th>Distance Thrown (m)</th>
+                <th>Landing Variation (&plusmn; m)</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <!-- Results added dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
