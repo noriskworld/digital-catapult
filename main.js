@@ -12,13 +12,55 @@ document.addEventListener('DOMContentLoaded', () => {
   renderer.drawArm(130, 2); // Initial static draw (130 deg pullback, arm hole 2)
   
   document.getElementById('add-row-btn').addEventListener('click', () => addConfigRow());
+  document.getElementById('clear-table-btn').addEventListener('click', clearTable);
   document.getElementById('launch-btn').addEventListener('click', runAllAtOnce);
+  
+  // Excel Copy-Paste Support
+  document.addEventListener('paste', handleTablePaste);
   
   // Add a few default rows
   addConfigRow(180, 100, 3, 3, 2);
   addConfigRow(150, 110, 2, 2, 1);
   addConfigRow(120, 95, 1, 1, 3);
 });
+
+function clearTable() {
+  document.getElementById('config-tbody').innerHTML = '';
+}
+
+function handleTablePaste(e) {
+  const pasteData = e.clipboardData.getData('text');
+  if (!pasteData) return;
+
+  const rows = pasteData.trim().split('\n');
+  // If it's just a single cell paste, let the default input paste behavior happen
+  if (rows.length === 1 && rows[0].split('\t').length === 1) return;
+
+  // It's a grid paste, prevent default
+  e.preventDefault();
+  
+  rows.forEach(rowStr => {
+    const cols = rowStr.split('\t').map(c => c.trim());
+    if (cols.length > 0 && cols[0] !== '') {
+      const pull = parseFloat(cols[0]);
+      // Skip headers or invalid rows
+      if (isNaN(pull)) return; 
+      
+      const stop = parseFloat(cols[1]);
+      const bungee = parseFloat(cols[2]);
+      const arm = parseFloat(cols[3]);
+      const pin = parseFloat(cols[4]);
+      
+      addConfigRow(
+        isNaN(pull) ? 160 : pull,
+        isNaN(stop) ? 110 : stop,
+        isNaN(bungee) ? 2 : bungee,
+        isNaN(arm) ? 2 : arm,
+        isNaN(pin) ? 2 : pin
+      );
+    }
+  });
+}
 
 function addConfigRow(pull = 160, stop = 110, bungee = 2, arm = 2, pin = 2) {
   rowCount++;
