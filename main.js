@@ -4,90 +4,86 @@ import { CatapultRenderer } from './animation.js';
 
 let renderer;
 let rowCount = 0;
-const configs = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   renderer = new CatapultRenderer('sim-canvas');
   renderer.clear();
   renderer.drawBase();
-  renderer.drawArm(45, 1.0, 0.9); // Initial static draw
+  renderer.drawArm(130, 2); // Initial static draw (130 deg pullback, arm hole 2)
   
   document.getElementById('add-row-btn').addEventListener('click', addConfigRow);
-  document.getElementById('launch-btn').addEventListener('click', launchSelected);
+  document.getElementById('launch-btn').addEventListener('click', runAllAtOnce);
   
-  // Add a default row
-  addConfigRow();
+  // Add a few default rows
+  addConfigRow(180, 100, 3, 3, 2);
+  addConfigRow(150, 110, 2, 2, 1);
+  addConfigRow(120, 95, 1, 1, 3);
 });
 
-function addConfigRow() {
+function addConfigRow(pull = 160, stop = 110, bungee = 2, arm = 2, pin = 2) {
   rowCount++;
   const tbody = document.getElementById('config-tbody');
   const tr = document.createElement('tr');
   tr.dataset.id = rowCount;
   
   tr.innerHTML = `
-    <td><input type="number" step="1" value="70" class="inp-pull"></td>
-    <td><input type="number" step="10" value="100" class="inp-tension"></td>
-    <td><input type="number" step="0.1" value="1.0" class="inp-arm"></td>
-    <td><input type="number" step="0.01" value="0.05" class="inp-mass"></td>
-    <td><input type="number" step="1" value="20" class="inp-stop"></td>
-    <td><input type="number" step="0.05" value="0.9" class="inp-cup"></td>
-    <td>
-      <div class="radio-container">
-        <input type="radio" name="selected-config" value="${rowCount}" ${rowCount === 1 ? 'checked' : ''}>
-      </div>
-    </td>
+    <td><input type="number" step="1" min="100" max="200" value="${pull}" class="inp-pull"></td>
+    <td><input type="number" step="1" min="90" max="120" value="${stop}" class="inp-stop"></td>
+    <td><input type="number" step="1" min="1" max="3" value="${bungee}" class="inp-bungee"></td>
+    <td><input type="number" step="1" min="1" max="3" value="${arm}" class="inp-arm"></td>
+    <td><input type="number" step="1" min="1" max="3" value="${pin}" class="inp-pin"></td>
+    <td><button class="btn delete" onclick="this.closest('tr').remove()">Remove</button></td>
   `;
   
   tbody.appendChild(tr);
 }
 
-function getSelectedConfig() {
-  const selectedRadio = document.querySelector('input[name="selected-config"]:checked');
-  if (!selectedRadio) return null;
-  
-  const rowId = selectedRadio.value;
-  const tr = document.querySelector(`tr[data-id="${rowId}"]`);
-  
-  return {
-    id: rowId,
-    pullBackAngle: parseFloat(tr.querySelector('.inp-pull').value),
-    tension: parseFloat(tr.querySelector('.inp-tension').value),
-    armLength: parseFloat(tr.querySelector('.inp-arm').value),
-    mass: parseFloat(tr.querySelector('.inp-mass').value),
-    stopAngle: parseFloat(tr.querySelector('.inp-stop').value),
-    cupPlacement: parseFloat(tr.querySelector('.inp-cup').value)
-  };
+function getAllConfigs() {
+  const rows = document.querySelectorAll('#config-tbody tr');
+  const configs = [];
+  rows.forEach(tr => {
+    configs.push({
+      id: tr.dataset.id,
+      pullBackAngle: parseFloat(tr.querySelector('.inp-pull').value),
+      stopAngle: parseFloat(tr.querySelector('.inp-stop').value),
+      bungeePosition: parseInt(tr.querySelector('.inp-bungee').value),
+      armHole: parseInt(tr.querySelector('.inp-arm').value),
+      pinElevation: parseInt(tr.querySelector('.inp-pin').value)
+    });
+  });
+  return configs;
 }
 
-function launchSelected() {
-  const config = getSelectedConfig();
-  if (!config) {
-    alert("Please select a configuration to launch.");
+function runAllAtOnce() {
+  const configs = getAllConfigs();
+  if (configs.length === 0) {
+    alert("Please add at least one configuration.");
     return;
   }
   
-  // Disable button during animation
+  // Disable button
   document.getElementById('launch-btn').disabled = true;
+  document.getElementById('results-tbody').innerHTML = ''; // Clear old results
   
-  // Physics Calculation
-  const result = calculateLaunch(
-    config.pullBackAngle,
-    config.tension,
-    config.armLength,
-    config.mass,
-    config.stopAngle,
-    config.cupPlacement
-  );
+  const results = [];
   
-  // Generate a sampled outcome based on the theoretical mean and variation
-  const actualDistance = Math.max(0, randomNormal(result.distance, result.variation));
+  // Physics Calculation for all
+  configs.forEach(config => {
+    const result = calculateLaunch(
+      config.pullBackAngle,
+      config.stopAngle,
+      config.bungeePosition,
+      config.armHole,
+      config.pinElevation
+    );
+    
+    const actualDistance = Math.max(0, randomNormal(result.distance, result.variation));
+    results.push({ config, actualDistance, variation: result.variation });
+    addResultRow(config.id, actualDistance, result.variation);
+  });
   
-  // Add to results table
-  addResultRow(config.id, actualDistance, result.variation);
-  
-  // Animate
-  animateLaunch(config, actualDistance);
+  // Animate all simultaneously
+  animateSimultaneous(results);
 }
 
 function addResultRow(configId, distance, variation) {
@@ -98,85 +94,87 @@ function addResultRow(configId, distance, variation) {
     <td>${distance.toFixed(2)}</td>
     <td>&plusmn; ${variation.toFixed(3)}</td>
   `;
-  tbody.prepend(tr); // Add to top
+  tbody.appendChild(tr); 
 }
 
-function animateLaunch(config, actualDistance) {
-  let startTime = null;
-  const animDurationMs = 500; // time to swing arm
-  
-  // Arm swing from pullBackAngle to stopAngle
-  const startAngle = config.pullBackAngle;
-  const endAngle = config.stopAngle;
-  
-  function swingStep(timestamp) {
-    if (!startTime) startTime = timestamp;
-    const progress = Math.min((timestamp - startTime) / animDurationMs, 1.0);
-    
-    // Ease out cubic
-    const easeProgress = 1 - Math.pow(1 - progress, 3);
-    const currentAngle = startAngle - (startAngle - endAngle) * easeProgress;
-    
-    renderer.clear();
-    renderer.drawBase();
-    renderer.drawArm(currentAngle, config.armLength, config.cupPlacement);
-    
-    if (progress < 1.0) {
-      requestAnimationFrame(swingStep);
-    } else {
-      // Launch projectile
-      animateProjectile(config, actualDistance);
-    }
-  }
-  
-  requestAnimationFrame(swingStep);
-}
+const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
 
-function animateProjectile(config, actualDistance) {
+function animateSimultaneous(runs) {
   let startTime = null;
+  const animDurationMs = 500; 
   const flightDurationMs = 1500;
-  const g = 9.81;
   
-  // Initial projectile position at stop angle
-  const angleRad = config.stopAngle * (Math.PI / 180);
-  const startX = config.armLength * config.cupPlacement * Math.sin(angleRad);
-  const startY = config.armLength * config.cupPlacement * Math.cos(angleRad);
+  // Setup trajectories
+  runs.forEach((run, index) => {
+    run.color = colors[index % colors.length];
+    run.trajectoryPoints = [];
+    
+    // Physics geometry to match drawing:
+    const angleRad = run.config.stopAngle * (Math.PI / 180);
+    const placements = { 1: 0.6, 2: 0.8, 3: 1.0 };
+    const armLengthPx = 150; 
+    const cupPx = armLengthPx * (placements[run.config.armHole] || 0.8);
+    // Convert to meters using scale
+    const scale = 20; 
+    const cupM = cupPx / scale;
+    
+    // Position of cup at stop angle
+    run.startX = cupM * Math.cos(angleRad);
+    run.startY = cupM * Math.sin(angleRad);
+  });
   
-  // We know the final distance, so we can reverse engineer a simple parabola for visual effect
-  // Let's just make a fake parabola that lands at `actualDistance` for the animation
-  // y = a * x^2 + b * x + c
-  
-  const trajectoryPoints = [];
-  
-  function flightStep(timestamp) {
+  function step(timestamp) {
     if (!startTime) startTime = timestamp;
-    const progress = Math.min((timestamp - startTime) / flightDurationMs, 1.0);
-    
-    // Fake x moving linearly
-    const currentX = startX + actualDistance * progress;
-    
-    // Fake y moving as a parabola
-    // At t=0, y = startY. At t=0.5, y is max. At t=1, y = 0.
-    const h = actualDistance / 2;
-    const maxHeight = startY + actualDistance * 0.5; // just a visual guess
-    const a = -maxHeight / (h * h);
-    // y = a * (x - h)^2 + maxHeight
-    const currentY = Math.max(0, a * Math.pow(currentX - h, 2) + maxHeight);
-    
-    trajectoryPoints.push({ x: currentX, y: currentY });
+    const elapsed = timestamp - startTime;
     
     renderer.clear();
     renderer.drawBase();
-    renderer.drawArm(config.stopAngle, config.armLength, config.cupPlacement);
-    renderer.drawTrajectory(trajectoryPoints);
-    renderer.drawProjectile(currentX, currentY);
     
-    if (progress < 1.0 && currentY > 0) {
-      requestAnimationFrame(flightStep);
+    let allFinished = true;
+    
+    runs.forEach(run => {
+      if (elapsed < animDurationMs) {
+        // Arm swinging phase
+        allFinished = false;
+        const progress = elapsed / animDurationMs;
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentAngle = run.config.pullBackAngle - (run.config.pullBackAngle - run.config.stopAngle) * easeProgress;
+        
+        renderer.drawArm(currentAngle, run.config.armHole);
+      } else {
+        // Flight phase
+        renderer.drawArm(run.config.stopAngle, run.config.armHole);
+        
+        const flightElapsed = elapsed - animDurationMs;
+        if (flightElapsed < flightDurationMs) {
+          allFinished = false;
+          const progress = flightElapsed / flightDurationMs;
+          
+          // Fake parabola mapping to actual distance
+          const currentX = run.startX + run.actualDistance * progress;
+          const h = run.actualDistance / 2;
+          const maxHeight = run.startY + Math.max(2, run.actualDistance * 0.4); 
+          const a = -maxHeight / (h * h);
+          const currentY = Math.max(0, a * Math.pow(currentX - h, 2) + maxHeight);
+          
+          run.trajectoryPoints.push({ x: currentX, y: currentY });
+          renderer.drawProjectile(currentX, currentY, run.color);
+        } else {
+          // Finished flight, just draw last pos
+          const currentX = run.startX + run.actualDistance;
+          renderer.drawProjectile(currentX, 0, run.color);
+        }
+        
+        renderer.drawTrajectory(run.trajectoryPoints, run.color);
+      }
+    });
+    
+    if (!allFinished) {
+      requestAnimationFrame(step);
     } else {
       document.getElementById('launch-btn').disabled = false;
     }
   }
   
-  requestAnimationFrame(flightStep);
+  requestAnimationFrame(step);
 }

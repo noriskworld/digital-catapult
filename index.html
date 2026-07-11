@@ -19,12 +19,11 @@
           <table id="config-table">
             <thead>
               <tr>
-                <th>Pull-back Angle<br><small>(&deg;)</small></th>
-                <th>Tension<br><small>(N/m)</small></th>
-                <th>Arm Length<br><small>(m)</small></th>
-                <th>Proj. Mass<br><small>(kg)</small></th>
-                <th>Stop Angle<br><small>(&deg;)</small></th>
-                <th>Cup Placement<br><small>(ratio)</small></th>
+                <th>Pull-back Angle<br><small>(100&deg; - 200&deg;)</small></th>
+                <th>Stop Angle<br><small>(90&deg; - 120&deg;)</small></th>
+                <th>Bungee Position<br><small>(1, 2, 3)</small></th>
+                <th>Arm Hole<br><small>(1, 2, 3)</small></th>
+                <th>Pin Elevation<br><small>(1, 2, 3)</small></th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -33,7 +32,9 @@
             </tbody>
           </table>
         </div>
-        <button id="add-row-btn" class="btn">Add Configuration</button>
+        <div class="controls row-actions">
+          <button id="add-row-btn" class="btn">Add Configuration</button>
+        </div>
       </section>
 
       <section class="simulation-panel">
@@ -41,7 +42,7 @@
           <canvas id="sim-canvas" width="800" height="400"></canvas>
         </div>
         <div class="controls">
-          <button id="launch-btn" class="btn primary">Launch Selected</button>
+          <button id="launch-btn" class="btn primary">Run All at Once</button>
         </div>
       </section>
 
