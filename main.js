@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderer.drawBase();
   renderer.drawArm(130, 2); // Initial static draw (130 deg pullback, arm hole 2)
   
-  document.getElementById('add-row-btn').addEventListener('click', addConfigRow);
+  document.getElementById('add-row-btn').addEventListener('click', () => addConfigRow());
   document.getElementById('launch-btn').addEventListener('click', runAllAtOnce);
   
   // Add a few default rows
