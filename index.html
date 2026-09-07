@@ -3,22 +3,74 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Digital Catapult Simulation</title>
+    <title>Digital Catapult Process Simulator</title>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
     <header>
-      <h1>Digital Catapult Simulation</h1>
-      <p>Simulate the non-linear physics of a catapult launch</p>
+      <div class="header-content">
+        <h1>Digital Catapult Process Simulator</h1>
+        <p>A non-linear physics and Design of Experiments (DOE) simulation tool for process optimization and Six Sigma analysis.</p>
+        <button id="guide-toggle-btn" class="btn outline guide-btn">Hide DOE &amp; User Guide</button>
+      </div>
     </header>
 
     <main>
+      <!-- In-App Instruction & DOE User Guide -->
+      <section id="guide-section" class="guide-panel">
+        <div id="guide-content" class="guide-body">
+          <div class="guide-grid">
+            <div class="guide-card">
+              <h3>🎯 Overview &amp; Purpose</h3>
+              <p>
+                The <strong>Digital Catapult</strong> simulates the non-linear physics of a spring-loaded catapult, commonly used in <strong>Design of Experiments (DOE)</strong>, <strong>Statistical Process Control (SPC)</strong>, and <strong>Six Sigma</strong> training. Your goal is to understand factor interactions, optimize distance, and minimize shot variation.
+              </p>
+            </div>
+
+            <div class="guide-card">
+              <h3>⚙️ The 5 Input Factors (X's)</h3>
+              <ul>
+                <li><strong>Pull-Back Angle (90&deg; &ndash; 200&deg;):</strong> Arm angle when loaded. 90&deg; is straight up, 180&deg; is horizontal, &gt;180&deg; pulls down. Controls primary elastic energy.</li>
+                <li><strong>Stop Angle (90&deg; &ndash; 120&deg;):</strong> Angle where the arm hits the stop post, determining the initial launch trajectory vector.</li>
+                <li><strong>Bungee Position (1.0 &ndash; 5.0):</strong> Rubber band tension setting (1 = loose/soft, 5 = stiff/maximum tension).</li>
+                <li><strong>Arm Hole (1.0 &ndash; 5.0):</strong> Cup placement along the arm radius (1 = near pivot, 5 = tip). Affects rotational inertia and tangential release velocity.</li>
+                <li><strong>Pin Elevation (1.0 &ndash; 5.0):</strong> Height adjustment on the stop pin, fine-tuning the effective release angle.</li>
+              </ul>
+            </div>
+
+            <div class="guide-card">
+              <h3>📊 The Responses (Y's)</h3>
+              <ul>
+                <li><strong>Distance Thrown (m):</strong> Horizontal landing distance measured along the graduated ground ruler from the catapult pivot (0m).</li>
+                <li><strong>Landing Variation (&plusmn; m):</strong> Natural process standard deviation ($\sigma$). Higher tension and longer arm radius increase variability.</li>
+                <li><strong>Release Velocity (m/s):</strong> Tangential velocity of the projectile upon cup release.</li>
+              </ul>
+            </div>
+
+            <div class="guide-card">
+              <h3>📋 How to Use &amp; DOE Workflow</h3>
+              <ol>
+                <li><strong>Build Runs:</strong> Use <em>Add Configuration</em> to create trial runs, or directly edit existing rows.</li>
+                <li><strong>Excel Copy-Paste:</strong> Copy a 5-column DOE run table from Excel or Google Sheets (<kbd>Ctrl</kbd>+<kbd>C</kbd>) and paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>) directly into the table.</li>
+                <li><strong>Simulate:</strong> Click <em>Run All at Once</em> to watch the animated catapult swing and ballistic trajectories. Each run is tagged with a colored landing flag.</li>
+                <li><strong>Analyze:</strong> Click <em>Copy to Clipboard</em> or <em>Export CSV</em> to import the response data into Excel, Minitab, or Python for regression and ANOVA.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Input Parameters Panel -->
       <section class="config-panel">
-        <h2>Input Parameters (Factors / X's)</h2>
+        <div class="panel-header">
+          <h2>Input Parameters (Factors / X's)</h2>
+          <span class="paste-hint">💡 Tip: Paste 5-column table directly from Excel (Pull, Stop, Bungee, Arm, Pin)</span>
+        </div>
         <div class="table-container">
           <table id="config-table">
             <thead>
               <tr>
+                <th style="width: 60px;">Run</th>
                 <th>Pull-back Angle<br><small>(90&deg; - 200&deg;)</small></th>
                 <th>Stop Angle<br><small>(90&deg; - 120&deg;)</small></th>
                 <th>Bungee Position<br><small>(1.0 - 5.0)</small></th>
@@ -28,43 +80,66 @@
               </tr>
             </thead>
             <tbody id="config-tbody">
-              <!-- Rows added dynamically -->
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
-        <div class="controls row-actions" style="display: flex; gap: 10px;">
-          <button id="add-row-btn" class="btn">Add Configuration</button>
+        <div class="controls row-actions">
+          <button id="add-row-btn" class="btn secondary">+ Add Configuration</button>
           <button id="clear-table-btn" class="btn delete">Clear Table</button>
         </div>
       </section>
 
+      <!-- Simulation Visualizer Panel -->
       <section class="simulation-panel">
-        <div class="canvas-container">
-          <canvas id="sim-canvas" width="800" height="400"></canvas>
+        <div class="panel-header">
+          <h2>Catapult Arena &amp; Ballistic Trajectory</h2>
+          <div class="controls">
+            <button id="launch-btn" class="btn primary">🚀 Run All at Once</button>
+          </div>
         </div>
-        <div class="controls">
-          <button id="launch-btn" class="btn primary">Run All at Once</button>
+        <div class="canvas-container">
+          <canvas id="sim-canvas" width="850" height="400"></canvas>
         </div>
       </section>
 
+      <!-- Results Panel -->
       <section class="results-panel">
-        <h2>Results (Responses / Y's)</h2>
+        <div class="panel-header">
+          <h2>Results &amp; DOE Responses (Y's)</h2>
+          <div class="results-actions">
+            <button id="copy-results-btn" class="btn outline">📋 Copy to Clipboard</button>
+            <button id="export-csv-btn" class="btn secondary">📥 Export CSV</button>
+            <button id="clear-results-btn" class="btn delete">Clear Results</button>
+          </div>
+        </div>
         <div class="table-container">
           <table id="results-table">
             <thead>
               <tr>
-                <th>Config #</th>
-                <th>Distance Thrown (m)</th>
-                <th>Landing Variation (&plusmn; m)</th>
+                <th>Run / Color</th>
+                <th>Pull-back</th>
+                <th>Stop</th>
+                <th>Bungee</th>
+                <th>Arm Hole</th>
+                <th>Pin Elev</th>
+                <th>Distance Thrown</th>
+                <th>Variation (&plusmn;1&sigma;)</th>
+                <th>Release Velocity</th>
               </tr>
             </thead>
             <tbody id="results-tbody">
-              <!-- Results added dynamically -->
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
       </section>
     </main>
+
+    <footer>
+      <p>Digital Catapult Process Simulator &bull; Designed for Quality Engineering, DOE &amp; Six Sigma Training</p>
+    </footer>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>
