@@ -33,10 +33,10 @@ The **Digital Catapult Process Simulator** replaces physical desktop catapults w
 
 ## 📊 The Responses ($Y$'s)
 
-1. **Distance Thrown ($m$):**
-   - Horizontal distance traveled from the catapult pivot ($0\text{m}$) to ground impact ($y = 0$).
-2. **Landing Variation ($\pm m$):**
-   - Natural process noise standard deviation ($1\sigma$). Higher band tension and longer cup radii naturally generate greater dispersion.
+1. **Distance from Pivot ($m$):**
+   - Ground impact point measured along the arena ruler from the pivot at $0\text{m}$. This is the response to analyse. Note that the cup sits *behind* the pivot at release whenever the effective stop angle exceeds $90^\circ$; the reported distance accounts for that offset, so the number always matches the landing flag on the ruler.
+2. **Model $\sigma$ ($\pm m$):**
+   - The noise the simulator injects into each shot, growing with band tension and cup radius. It is a property of the *settings*, not a measurement — regressing on it just recovers the generating formula. To obtain a genuine variation response, fire several **replicates** and take the standard deviation of the observed distances.
 3. **Release Velocity ($m/s$):**
    - Tangential speed of the ball as it separates from the cup.
 
@@ -60,18 +60,22 @@ $$v_0 = \omega \cdot r_{\text{cup}}$$
 ### 3. Ballistic Trajectory
 With launch angle $\alpha = \theta_{\text{eff}} - 90^\circ$ and release height $h_0 = r_{\text{cup}} \sin(\theta_{\text{eff}})$:
 $$t_{\text{flight}} = \frac{v_0 \sin\alpha + \sqrt{(v_0 \sin\alpha)^2 + 2 g h_0}}{g}$$
-$$x(t) = x_{\text{cup}} + (v_0 \cos\alpha) t$$
-$$y(t) = y_{\text{cup}} + (v_0 \sin\alpha) t - \frac{1}{2} g t^2$$
+$$x(t) = x_{\text{cup}} + v_x t, \qquad y(t) = y_{\text{cup}} + (v_0 \sin\alpha) t - \frac{1}{2} g t^2$$
+
+### 4. Aerodynamic Loss
+A lumped drag term is applied to the horizontal component, $v_x = v_0\cos\alpha / (1 + 0.02\,v_0)$, so that faster shots bleed proportionally more range. Because the loss lives in $v_x$ rather than being applied to the finished number, $x(t_{\text{flight}})$ reproduces the reported distance exactly — the drawn arc and the recorded response are the same trajectory.
 
 ---
 
 ## 🚀 Features
 
-- **Live Ballistic Visualizer:** High-framerate HTML5 Canvas rendering featuring the catapult frame, swinging arm, stretching rubber band, graduated ground ruler (meter ticks), and animated projectile arcs.
-- **Simultaneous Multi-Run Animation:** Run multiple configurations at once with synchronized firing, unique tracer colors, and numbered landing flags.
+- **Live Ballistic Visualizer:** HTML5 Canvas rendering of the frame, swinging arm, stretching band, a graduated ground ruler, and projectile arcs sampled directly from the solved kinematics — the animation is the physics, not a decorative approximation.
+- **Auto-Scaling Arena:** The view fits itself to the longest shot and the highest arc in a batch, so results stay on screen from a 1 m dribble to a 30 m throw.
+- **Replicates:** Fire 1–30 shots per configuration in a single batch. Results accumulate across batches until cleared, so a fully replicated design can be built up and exported in one go.
+- **Simultaneous Multi-Run Animation:** Run every configuration at once with unique tracer colors and stacked, numbered landing flags.
 - **Excel / Google Sheets Copy-Paste:** Copy any 5-column trial table directly from a spreadsheet and paste into the configuration panel.
-- **DOE Response Tracking:** View input factor settings and output responses side-by-side.
-- **Export Capabilities:** Download your dataset as `.csv` or copy tab-separated values ready for Minitab, JMP, or Excel.
+- **DOE Response Tracking:** Input factor settings and output responses side-by-side, one row per shot.
+- **Export Capabilities:** Download the raw shot data as `.csv` or copy tab-separated values ready for Minitab, JMP, or Excel.
 - **Interactive In-App Guide:** Built-in collapsible guide detailing factors, bounds, and DOE procedures.
 
 ---
@@ -104,6 +108,27 @@ npm run build
 npm run preview
 ```
 
+### Tests
+The physics solver is pure and covered by `node:test` — no test framework to install.
+```bash
+npm test                                   # whole suite
+node --test test/physics.test.mjs          # one file
+node --test --test-name-pattern="pivot"    # one test
+```
+
+---
+
+## 🗂️ Project Layout
+
+| File | Responsibility |
+|---|---|
+| `constants.js` | Single source of truth for geometry, masses, factor bounds and the shared coordinate convention. |
+| `physics.js` | Pure solver: `calculateLaunch`, `trajectoryAt`, `apexHeight`, `randomNormal`. No DOM. |
+| `animation.js` | `CatapultRenderer` — all metre→pixel conversion, drawing and auto-scaling. |
+| `main.js` | DOM wiring, run batching and replication, the frame loop, CSV/TSV export. |
+
+Because `physics.js` and `animation.js` both import their geometry from `constants.js`, the drawn machine cannot drift out of step with the solved one.
+
 ---
 
 ## 📖 Recommended DOE Exercises
@@ -112,6 +137,6 @@ npm run preview
    - Test low ($-1$) and high ($+1$) settings for each of the 5 factors.
    - Determine which factors are statistically significant for distance vs. variation.
 2. **Target Matching:**
-   - Find factor settings that consistently achieve exactly $10.0\text{ m}$ while minimizing variation.
+   - Find factor settings that consistently achieve exactly $10.0\text{ m}$ while minimising variation. Use 5+ replicates so the observed standard deviation is a meaningful response.
 3. **Response Surface Design (Central Composite Design):**
    - Explore non-linear curvature in Pull-Back Angle and Bungee Position to identify the global maximum throw.

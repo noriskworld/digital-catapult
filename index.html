@@ -41,8 +41,8 @@
             <div class="guide-card">
               <h3>📊 The Responses (Y's)</h3>
               <ul>
-                <li><strong>Distance Thrown (m):</strong> Horizontal landing distance measured along the graduated ground ruler from the catapult pivot (0m).</li>
-                <li><strong>Landing Variation (&plusmn; m):</strong> Natural process standard deviation ($\sigma$). Higher tension and longer arm radius increase variability.</li>
+                <li><strong>Distance from Pivot (m):</strong> Ground impact point measured along the graduated ruler from the pivot at 0m. This is the number to analyse.</li>
+                <li><strong>Model &sigma; (&plusmn; m):</strong> The noise the simulator injects into each shot. It is a property of the settings, not a measurement &ndash; to get a <em>real</em> variation response, fire several replicates and compute the standard deviation of the observed distances.</li>
                 <li><strong>Release Velocity (m/s):</strong> Tangential velocity of the projectile upon cup release.</li>
               </ul>
             </div>
@@ -52,8 +52,8 @@
               <ol>
                 <li><strong>Build Runs:</strong> Use <em>Add Configuration</em> to create trial runs, or directly edit existing rows.</li>
                 <li><strong>Excel Copy-Paste:</strong> Copy a 5-column DOE run table from Excel or Google Sheets (<kbd>Ctrl</kbd>+<kbd>C</kbd>) and paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>) directly into the table.</li>
-                <li><strong>Simulate:</strong> Click <em>Run All at Once</em> to watch the animated catapult swing and ballistic trajectories. Each run is tagged with a colored landing flag.</li>
-                <li><strong>Analyze:</strong> Click <em>Copy to Clipboard</em> or <em>Export CSV</em> to import the response data into Excel, Minitab, or Python for regression and ANOVA.</li>
+                <li><strong>Simulate:</strong> Set <em>Replicates</em> (3&ndash;5 is typical) and click <em>Run All Configurations</em>. Every shot follows its true ballistic arc and is recorded as its own row.</li>
+                <li><strong>Analyze:</strong> Results accumulate across batches until you press <em>Clear Results</em>. Use <em>Copy to Clipboard</em> or <em>Export CSV</em> to pull the raw shot data into Minitab, JMP, Excel or Python for ANOVA and regression.</li>
               </ol>
             </div>
           </div>
@@ -95,12 +95,18 @@
         <div class="panel-header">
           <h2>Catapult Arena &amp; Ballistic Trajectory</h2>
           <div class="controls">
-            <button id="launch-btn" class="btn primary">🚀 Run All at Once</button>
+            <label class="replicates-field" for="replicates-input">
+              Replicates
+              <input type="number" id="replicates-input" min="1" max="30" step="1" value="1"
+                     title="Shots fired per configuration. Use 3 or more to estimate variation from the data.">
+            </label>
+            <button id="launch-btn" class="btn primary">🚀 Run All Configurations</button>
           </div>
         </div>
         <div class="canvas-container">
           <canvas id="sim-canvas" width="850" height="400"></canvas>
         </div>
+        <p id="status-bar" class="status-bar" role="status" aria-live="polite" hidden></p>
       </section>
 
       <!-- Results Panel -->
@@ -117,14 +123,14 @@
           <table id="results-table">
             <thead>
               <tr>
-                <th>Run / Color</th>
+                <th>Config / Batch&middot;Rep</th>
                 <th>Pull-back</th>
                 <th>Stop</th>
                 <th>Bungee</th>
                 <th>Arm Hole</th>
                 <th>Pin Elev</th>
-                <th>Distance Thrown</th>
-                <th>Variation (&plusmn;1&sigma;)</th>
+                <th>Distance from Pivot</th>
+                <th>Model &sigma; (&plusmn;1&sigma;)</th>
                 <th>Release Velocity</th>
               </tr>
             </thead>

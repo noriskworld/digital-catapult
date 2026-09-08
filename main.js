@@ -1,418 +1,557 @@
 import './style.css';
-import { calculateLaunch, randomNormal } from './physics.js';
+import { calculateLaunch, randomNormal, trajectoryAt, apexHeight } from './physics.js';
 import { CatapultRenderer } from './animation.js';
-
-let renderer;
-let rowCount = 0;
-let lastResults = [];
+import { FACTOR_BOUNDS, clamp } from './constants.js';
 
 const RUN_COLORS = [
-  '#ef4444', // red
-  '#38bdf8', // sky blue
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#a855f7', // purple
-  '#ec4899', // pink
-  '#14b8a6', // teal
-  '#f97316'  // orange
+  '#ef4444', '#38bdf8', '#10b981', '#f59e0b',
+  '#a855f7', '#ec4899', '#14b8a6', '#f97316'
 ];
+
+/** Wall-clock length of the arm swing, before release. */
+const SWING_MS = 450;
+/** Real seconds of flight are stretched by this factor so the arc is watchable. */
+const FLIGHT_TIME_SCALE = 1.6;
+/** Beyond this many shots in one batch, only the first replicate is animated. */
+const MAX_ANIMATED_SHOTS = 24;
+
+let renderer;
+let configSeq = 0;
+let batchSeq = 0;
+/**
+ * The finished batch currently shown in the arena, or null for the idle
+ * preview. Held so a resize can repaint the same scene instead of wiping it.
+ */
+let arenaBatch = null;
+/** Every shot recorded since the last "Clear Results" - this is the export set. */
+let collectedShots = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   renderer = new CatapultRenderer('sim-canvas');
-  resetCanvasPreview();
+  showPreview();
 
-  // Control Buttons
   document.getElementById('add-row-btn').addEventListener('click', () => addConfigRow());
   document.getElementById('clear-table-btn').addEventListener('click', clearConfigTable);
-  document.getElementById('launch-btn').addEventListener('click', runAllAtOnce);
-  
-  // Results Buttons
+  document.getElementById('launch-btn').addEventListener('click', runBatch);
   document.getElementById('export-csv-btn')?.addEventListener('click', exportResultsToCSV);
   document.getElementById('copy-results-btn')?.addEventListener('click', copyResultsToClipboard);
   document.getElementById('clear-results-btn')?.addEventListener('click', clearResultsTable);
 
-  // Guide Toggle
   const guideToggle = document.getElementById('guide-toggle-btn');
   const guideContent = document.getElementById('guide-content');
-  if (guideToggle && guideContent) {
-    guideToggle.addEventListener('click', () => {
-      const isHidden = guideContent.classList.toggle('hidden');
-      guideToggle.textContent = isHidden ? 'Show DOE & User Guide' : 'Hide DOE & User Guide';
-    });
-  }
+  guideToggle?.addEventListener('click', () => {
+    const isHidden = guideContent.classList.toggle('hidden');
+    guideToggle.textContent = isHidden ? 'Show DOE & User Guide' : 'Hide DOE & User Guide';
+  });
 
-  // Event delegation for table removal
   document.getElementById('config-tbody').addEventListener('click', (e) => {
     if (e.target.closest('.btn-delete-row')) {
-      const row = e.target.closest('tr');
-      row.remove();
-      updateRowLabels();
+      e.target.closest('tr').remove();
+      renumberConfigRows();
+      showPreview();
     }
   });
 
-  // Scoped Clipboard Paste Handler (Excel TSV and CSV support)
-  const configSection = document.querySelector('.config-panel');
-  if (configSection) {
-    configSection.addEventListener('paste', handleTablePaste);
-  }
+  // Editing a factor returns the arena to a live preview of the new settings.
+  document.getElementById('config-tbody').addEventListener('input', showPreview);
 
-  // Pre-populate with 3 standard DOE trial configurations
+  document.querySelector('.config-panel')?.addEventListener('paste', handleTablePaste);
+
+  // Keep the arena crisp through resizes without discarding the last batch.
+  window.addEventListener('resize', () => {
+    renderer.syncBackingStore();
+    redrawArena();
+  });
+
+  // Three starting configurations spanning the factor space.
   addConfigRow(180, 100, 3, 3, 2);
   addConfigRow(150, 110, 2, 2, 1);
   addConfigRow(120, 95, 1, 1, 3);
 });
 
-function resetCanvasPreview() {
-  renderer.clear();
-  renderer.drawBase(105);
-  renderer.drawArm(140, 3, true); // Idle preview
+/* -------------------------------------------------------------- status bar */
+
+/**
+ * Shows a transient message in the status bar. Replaces the old alert() calls,
+ * which blocked the animation loop and could not be styled.
+ *
+ * @param {string} message
+ * @param {'info'|'success'|'error'} [tone='info']
+ */
+function setStatus(message, tone = 'info') {
+  const el = document.getElementById('status-bar');
+  if (!el) return;
+  el.textContent = message;
+  el.className = `status-bar status-${tone}`;
+  el.hidden = !message;
 }
 
-function updateRowLabels() {
-  const rows = document.querySelectorAll('#config-tbody tr');
-  rows.forEach((tr, index) => {
-    const id = index + 1;
-    tr.dataset.id = id;
-    const badge = tr.querySelector('.row-num-badge');
-    if (badge) badge.textContent = `#${id}`;
+/* ------------------------------------------------------- configuration table */
+
+/**
+ * Repaints the arena from scratch: either the last finished batch, or the idle
+ * preview of the first configuration. Every path that touches the canvas goes
+ * through here, so a resize can never lose what was on screen.
+ */
+function redrawArena() {
+  if (arenaBatch) {
+    drawBatchResult(arenaBatch);
+    return;
+  }
+
+  const first = (readConfigs({ silent: true }) ?? [])[0];
+  renderer.resetScale();
+  renderer.clear();
+
+  if (!first) {
+    renderer.drawBase(105);
+    renderer.drawArm(140, 3, true);
+    return;
+  }
+
+  const launch = calculateLaunch(
+    first.pullBackAngle, first.stopAngle, first.bungeePosition,
+    first.armHole, first.pinElevation
+  );
+  renderer.drawBase(launch.effectiveStopAngle);
+  renderer.drawArm(first.pullBackAngle, first.armHole, true);
+}
+
+/** Drops any finished batch and shows the live configuration preview. */
+function showPreview() {
+  arenaBatch = null;
+  redrawArena();
+}
+
+/**
+ * Paints a batch at rest: every trajectory complete, every shot on its mark.
+ * Also the fallback when the frame loop cannot run.
+ *
+ * @param {{shots: Array<object>, stopAngle: number, armHole: number}} batch
+ */
+function drawBatchResult(batch) {
+  const { shots, stopAngle, armHole } = batch;
+
+  renderer.fitToRange(
+    Math.max(1, ...shots.map(s => s.distance)),
+    Math.max(1, ...shots.map(s => apexHeight(s.launch)))
+  );
+  renderer.clear();
+  renderer.drawBase(stopAngle);
+  renderer.drawArm(stopAngle, armHole, false);
+
+  shots.forEach((shot, i) => {
+    const arc = [];
+    for (let step = 0; step <= 60; step++) {
+      arc.push(trajectoryAt(shot.launch, (step / 60) * shot.launch.flightTime, shot.rangeScale));
+    }
+    renderer.drawTrajectory(arc, shot.color);
+    renderer.drawProjectile(shot.distance, 0, shot.color);
+    renderer.drawLandingMarker(
+      shot.distance, `#${shot.config.id}`, shot.color,
+      shot.rep === 1 ? 0 : (i % 3) + 1
+    );
   });
+}
+
+function renumberConfigRows() {
+  document.querySelectorAll('#config-tbody tr').forEach((tr, index) => {
+    tr.dataset.id = index + 1;
+    const badge = tr.querySelector('.row-num-badge');
+    if (badge) badge.textContent = `#${index + 1}`;
+  });
+  configSeq = document.querySelectorAll('#config-tbody tr').length;
 }
 
 function clearConfigTable() {
   document.getElementById('config-tbody').innerHTML = '';
-  rowCount = 0;
-  resetCanvasPreview();
+  configSeq = 0;
+  showPreview();
+  setStatus('Configuration table cleared.', 'info');
 }
 
 function clearResultsTable() {
   document.getElementById('results-tbody').innerHTML = '';
-  lastResults = [];
-  resetCanvasPreview();
+  collectedShots = [];
+  batchSeq = 0;
+  showPreview();
+  setStatus('Results cleared.', 'info');
 }
 
 /**
- * Handles pasting TSV (from Excel) or CSV data into the configuration table.
+ * Builds one configuration row. Input bounds come from FACTOR_BOUNDS so the
+ * markup, the paste importer and the solver can never disagree.
+ */
+function addConfigRow(
+  pull = FACTOR_BOUNDS.pullBackAngle.default,
+  stop = FACTOR_BOUNDS.stopAngle.default,
+  bungee = FACTOR_BOUNDS.bungeePosition.default,
+  arm = FACTOR_BOUNDS.armHole.default,
+  pin = FACTOR_BOUNDS.pinElevation.default
+) {
+  configSeq++;
+  const tr = document.createElement('tr');
+  tr.dataset.id = configSeq;
+
+  const cell = (key, value, cls, label) => {
+    const b = FACTOR_BOUNDS[key];
+    return `<td><input type="number" step="${b.step}" min="${b.min}" max="${b.max}"
+      value="${value}" class="${cls}" aria-label="${label}"></td>`;
+  };
+
+  tr.innerHTML = `
+    <td><span class="row-num-badge">#${configSeq}</span></td>
+    ${cell('pullBackAngle', pull, 'inp-pull', 'Pull-back Angle')}
+    ${cell('stopAngle', stop, 'inp-stop', 'Stop Angle')}
+    ${cell('bungeePosition', bungee, 'inp-bungee', 'Bungee Position')}
+    ${cell('armHole', arm, 'inp-arm', 'Arm Hole')}
+    ${cell('pinElevation', pin, 'inp-pin', 'Pin Elevation')}
+    <td><button class="btn delete btn-delete-row" title="Remove Configuration">Remove</button></td>
+  `;
+
+  document.getElementById('config-tbody').appendChild(tr);
+  renumberConfigRows();
+}
+
+/**
+ * Pastes a TSV (Excel, Sheets) or CSV block into the configuration table.
+ * Header rows are skipped by detecting a non-numeric first column.
  */
 function handleTablePaste(e) {
   const pasteData = e.clipboardData?.getData('text');
   if (!pasteData) return;
 
   const lines = pasteData.trim().split(/\r?\n/);
-  // If single cell, let native input focus handle it
-  if (lines.length === 1 && !lines[0].includes('\t') && !lines[0].includes(',')) {
-    return;
-  }
+  // A single plain value is an ordinary paste into the focused input.
+  if (lines.length === 1 && !/[\t,]/.test(lines[0])) return;
 
   e.preventDefault();
 
-  let importedCount = 0;
-  lines.forEach(line => {
+  let imported = 0;
+  let skipped = 0;
+
+  for (const line of lines) {
     const delimiter = line.includes('\t') ? '\t' : ',';
     const cols = line.split(delimiter).map(c => c.trim().replace(/^["']|["']$/g, ''));
-    if (cols.length >= 2) {
-      const pull = parseFloat(cols[0]);
-      if (isNaN(pull)) return; // Skip headers
+    if (cols.length < 2) continue;
 
-      const stop = parseFloat(cols[1]);
-      const bungee = cols[2] !== undefined ? parseFloat(cols[2]) : 3;
-      const arm = cols[3] !== undefined ? parseFloat(cols[3]) : 3;
-      const pin = cols[4] !== undefined ? parseFloat(cols[4]) : 2;
-
-      addConfigRow(
-        clamp(isNaN(pull) ? 160 : pull, 90, 200),
-        clamp(isNaN(stop) ? 105 : stop, 90, 120),
-        clamp(isNaN(bungee) ? 3 : bungee, 1, 5),
-        clamp(isNaN(arm) ? 3 : arm, 1, 5),
-        clamp(isNaN(pin) ? 2 : pin, 1, 5)
-      );
-      importedCount++;
+    const values = cols.slice(0, 5).map(Number);
+    if (!Number.isFinite(values[0]) || !Number.isFinite(values[1])) {
+      skipped++;
+      continue;
     }
-  });
-}
 
-function clamp(val, min, max) {
-  return Math.min(Math.max(val, min), max);
-}
+    const pick = (i, key) => {
+      const b = FACTOR_BOUNDS[key];
+      return clamp(Number.isFinite(values[i]) ? values[i] : b.default, b.min, b.max);
+    };
 
-/**
- * Appends a new configuration row with bounds validation.
- */
-function addConfigRow(pull = 160, stop = 105, bungee = 3, arm = 3, pin = 2) {
-  rowCount++;
-  const tbody = document.getElementById('config-tbody');
-  const tr = document.createElement('tr');
-  tr.dataset.id = rowCount;
+    addConfigRow(
+      pick(0, 'pullBackAngle'),
+      pick(1, 'stopAngle'),
+      pick(2, 'bungeePosition'),
+      pick(3, 'armHole'),
+      pick(4, 'pinElevation')
+    );
+    imported++;
+  }
 
-  tr.innerHTML = `
-    <td><span class="row-num-badge">#${rowCount}</span></td>
-    <td><input type="number" step="1" min="90" max="200" value="${pull}" class="inp-pull" aria-label="Pull-back Angle"></td>
-    <td><input type="number" step="1" min="90" max="120" value="${stop}" class="inp-stop" aria-label="Stop Angle"></td>
-    <td><input type="number" step="0.5" min="1" max="5" value="${bungee}" class="inp-bungee" aria-label="Bungee Position"></td>
-    <td><input type="number" step="0.5" min="1" max="5" value="${arm}" class="inp-arm" aria-label="Arm Hole"></td>
-    <td><input type="number" step="0.5" min="1" max="5" value="${pin}" class="inp-pin" aria-label="Pin Elevation"></td>
-    <td><button class="btn delete btn-delete-row" title="Remove Configuration">Remove</button></td>
-  `;
-
-  tbody.appendChild(tr);
-  updateRowLabels();
+  showPreview();
+  setStatus(
+    imported
+      ? `Imported ${imported} configuration${imported === 1 ? '' : 's'}` +
+        `${skipped ? ` (${skipped} non-numeric row${skipped === 1 ? '' : 's'} skipped)` : ''}.`
+      : 'Nothing imported - no numeric rows found in the pasted data.',
+    imported ? 'success' : 'error'
+  );
 }
 
 /**
- * Reads and validates all input rows from the configuration table.
+ * Reads every configuration row, clamping values into their valid ranges and
+ * reporting rows that cannot be parsed at all.
+ *
+ * @param {{silent?: boolean}} [options]
+ * @returns {Array<object>|null} null when a row is unparseable
  */
-function getAllConfigs() {
-  const rows = document.querySelectorAll('#config-tbody tr');
+function readConfigs({ silent = false } = {}) {
+  const rows = [...document.querySelectorAll('#config-tbody tr')];
   const configs = [];
-  let hasError = false;
+  let invalid = 0;
+  let clamped = 0;
 
-  rows.forEach(tr => {
+  for (const tr of rows) {
     tr.classList.remove('row-error');
-    const pull = parseFloat(tr.querySelector('.inp-pull').value);
-    const stop = parseFloat(tr.querySelector('.inp-stop').value);
-    const bungee = parseFloat(tr.querySelector('.inp-bungee').value);
-    const arm = parseFloat(tr.querySelector('.inp-arm').value);
-    const pin = parseFloat(tr.querySelector('.inp-pin').value);
+    const raw = {
+      pullBackAngle: parseFloat(tr.querySelector('.inp-pull').value),
+      stopAngle: parseFloat(tr.querySelector('.inp-stop').value),
+      bungeePosition: parseFloat(tr.querySelector('.inp-bungee').value),
+      armHole: parseFloat(tr.querySelector('.inp-arm').value),
+      pinElevation: parseFloat(tr.querySelector('.inp-pin').value)
+    };
 
-    if ([pull, stop, bungee, arm, pin].some(isNaN)) {
+    if (Object.values(raw).some(v => !Number.isFinite(v))) {
       tr.classList.add('row-error');
-      hasError = true;
-      return;
+      invalid++;
+      continue;
     }
 
-    configs.push({
-      id: tr.dataset.id,
-      pullBackAngle: clamp(pull, 90, 200),
-      stopAngle: clamp(stop, 90, 120),
-      bungeePosition: clamp(bungee, 1, 5),
-      armHole: clamp(arm, 1, 5),
-      pinElevation: clamp(pin, 1, 5)
-    });
-  });
+    const config = { id: tr.dataset.id };
+    for (const [key, value] of Object.entries(raw)) {
+      const b = FACTOR_BOUNDS[key];
+      const bounded = clamp(value, b.min, b.max);
+      // Write the clamped value back so the table shows what was actually run.
+      if (bounded !== value) clamped++;
+      config[key] = bounded;
+    }
+    configs.push(config);
+  }
 
-  if (hasError) {
-    alert('Some rows have empty or invalid numbers. Please correct them.');
+  if (invalid) {
+    if (!silent) {
+      setStatus(`${invalid} row${invalid === 1 ? ' has' : 's have'} a missing or non-numeric value. Highlighted rows were not run.`, 'error');
+    }
     return null;
+  }
+  if (clamped && !silent) {
+    setStatus(`${clamped} value${clamped === 1 ? ' was' : 's were'} outside its valid range and has been clamped.`, 'info');
   }
 
   return configs;
 }
 
+/* ----------------------------------------------------------------- the run */
+
 /**
- * Executes the simulation for all configured catapult settings.
+ * Solves every configuration, fires the requested number of replicates, and
+ * hands the shots to the animator. Results accumulate across batches so a full
+ * DOE with replication can be built up and exported in one go.
  */
-function runAllAtOnce() {
-  const configs = getAllConfigs();
-  if (!configs || configs.length === 0) {
-    if (configs && configs.length === 0) alert('Please add at least one configuration row.');
+function runBatch() {
+  const configs = readConfigs();
+  if (!configs) return;
+  if (configs.length === 0) {
+    setStatus('Add at least one configuration before running.', 'error');
     return;
   }
 
+  const repInput = document.getElementById('replicates-input');
+  const replicates = clamp(parseInt(repInput?.value, 10) || 1, 1, 30);
+  if (repInput) repInput.value = replicates;
+
   const launchBtn = document.getElementById('launch-btn');
   launchBtn.disabled = true;
-  document.getElementById('results-tbody').innerHTML = ''; // Fresh results for this batch
-  lastResults = [];
+  arenaBatch = null;
+  batchSeq++;
 
-  const simulationRuns = [];
+  const shots = [];
+  let duds = 0;
 
   configs.forEach((config, idx) => {
-    const phys = calculateLaunch(
-      config.pullBackAngle,
-      config.stopAngle,
-      config.bungeePosition,
-      config.armHole,
-      config.pinElevation
+    const launch = calculateLaunch(
+      config.pullBackAngle, config.stopAngle, config.bungeePosition,
+      config.armHole, config.pinElevation
     );
+    if (!launch.valid) duds++;
 
-    // Stochastic throw with realistic process variation
-    let actualDistance = 0;
-    if (phys.distance > 0) {
-      actualDistance = Math.max(0, randomNormal(phys.distance, phys.variation));
+    for (let rep = 1; rep <= replicates; rep++) {
+      // The realised shot: nominal range perturbed by the process noise.
+      const distance = launch.valid
+        ? Math.max(0, randomNormal(launch.distance, launch.variation))
+        : 0;
+
+      shots.push({
+        batch: batchSeq,
+        rep,
+        config,
+        launch,
+        distance,
+        color: RUN_COLORS[idx % RUN_COLORS.length],
+        // Stretches the parabola so a noisy shot still lands on its own mark.
+        rangeScale: launch.distance > 0
+          ? (distance - launch.releaseX) / (launch.distance - launch.releaseX)
+          : 1,
+        trail: []
+      });
     }
-
-    const color = RUN_COLORS[idx % RUN_COLORS.length];
-    const runData = {
-      config,
-      phys,
-      actualDistance,
-      variation: phys.variation,
-      color,
-      trajectoryPoints: []
-    };
-
-    simulationRuns.push(runData);
-    lastResults.push(runData);
-    addResultRow(runData);
   });
 
-  // Run the unified canvas animation
-  animateRuns(simulationRuns, () => {
-    launchBtn.disabled = false;
-  });
+  collectedShots.push(...shots);
+  shots.forEach(appendResultRow);
+
+  const message = duds
+    ? `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'}. ${duds} configuration${duds === 1 ? '' : 's'} did not launch - check that pull-back clears the effective stop angle.`
+    : `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'} across ${configs.length} configuration${configs.length === 1 ? '' : 's'}.`;
+  setStatus(message, duds ? 'error' : 'success');
+
+  animateShots(shots, () => { launchBtn.disabled = false; });
 }
 
-function addResultRow(run) {
-  const tbody = document.getElementById('results-tbody');
+function appendResultRow(shot) {
+  const c = shot.config;
   const tr = document.createElement('tr');
-  const c = run.config;
-  
   tr.innerHTML = `
     <td>
-      <span class="color-dot" style="background-color: ${run.color}; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px;"></span>
-      <strong>Config #${c.id}</strong>
+      <span class="color-dot" style="background-color:${shot.color}"></span>
+      <strong>#${c.id}</strong><span class="rep-tag">b${shot.batch}·r${shot.rep}</span>
     </td>
     <td>${c.pullBackAngle}&deg;</td>
     <td>${c.stopAngle}&deg;</td>
     <td>${c.bungeePosition}</td>
     <td>${c.armHole}</td>
     <td>${c.pinElevation}</td>
-    <td class="result-dist">${run.actualDistance.toFixed(2)} m</td>
-    <td class="result-var">&plusmn; ${run.variation.toFixed(3)} m</td>
-    <td>${run.phys.releaseVelocity.toFixed(1)} m/s</td>
+    <td class="result-dist">${shot.distance.toFixed(2)} m</td>
+    <td class="result-var">&plusmn; ${shot.launch.variation.toFixed(3)} m</td>
+    <td>${shot.launch.releaseVelocity.toFixed(1)} m/s</td>
   `;
-  tbody.appendChild(tr);
+  document.getElementById('results-tbody').appendChild(tr);
 }
 
 /**
- * Synchronized multi-projectile ballistic animation.
+ * Animates a batch. The arm swing is a shared visual approximation, but each
+ * projectile follows its own true ballistic arc from physics.js, sampled in
+ * simulated seconds and merely slowed down for viewing.
+ *
+ * @param {Array<object>} shots
+ * @param {() => void} onComplete
  */
-function animateRuns(runs, onComplete) {
+function animateShots(shots, onComplete) {
+  const live = shots.filter(s => s.distance > 0);
+  // Beyond the cap, animate one shot per configuration to keep the arena legible.
+  const animated = live.length > MAX_ANIMATED_SHOTS ? live.filter(s => s.rep === 1) : live;
+
+  const stopAngle = shots.length
+    ? shots.reduce((sum, s) => sum + s.launch.effectiveStopAngle, 0) / shots.length
+    : 105;
+  const armHole = shots[0]?.config.armHole ?? 3;
+
+  if (animated.length === 0) {
+    showPreview();
+    onComplete();
+    return;
+  }
+
+  const batch = { shots: animated, stopAngle, armHole };
+  let finished = false;
+
+  /** Idempotent: whichever of the frame loop and the watchdog arrives first wins. */
+  function finish() {
+    if (finished) return;
+    finished = true;
+    clearTimeout(watchdog);
+    // Hand the batch to the arena so a later resize repaints it rather than
+    // falling back to the idle preview.
+    arenaBatch = batch;
+    redrawArena();
+    onComplete();
+  }
+
+  renderer.fitToRange(
+    Math.max(1, ...animated.map(s => s.distance)),
+    Math.max(1, ...animated.map(s => apexHeight(s.launch)))
+  );
+
+  const startAngle = Math.max(...animated.map(s => s.config.pullBackAngle));
+  const flightMs = Math.max(...animated.map(s => s.launch.flightTime)) * 1000 * FLIGHT_TIME_SCALE;
+
+  // requestAnimationFrame is throttled to a standstill in background tabs and
+  // barely runs in some headless contexts. Without this watchdog the arena
+  // would be left mid-flight and the Run button disabled indefinitely.
+  const watchdog = setTimeout(finish, SWING_MS + flightMs + 1500);
+
   let startTime = null;
-  const swingDurationMs = 450;
-  const flightDurationMs = 1600;
 
-  // Use the primary configuration for the physical arm animation
-  const masterRun = runs[0];
-  const maxPull = Math.max(...runs.map(r => r.config.pullBackAngle));
-  const avgStop = runs.reduce((acc, r) => acc + r.phys.effectiveStopAngle, 0) / runs.length;
-
-  function step(timestamp) {
-    if (!startTime) startTime = timestamp;
+  function frame(timestamp) {
+    if (finished) return;
+    if (startTime === null) startTime = timestamp;
     const elapsed = timestamp - startTime;
 
     renderer.clear();
-    renderer.drawBase(avgStop);
+    renderer.drawBase(stopAngle);
 
-    if (elapsed < swingDurationMs) {
-      // 1. Arm Swing Phase
-      const progress = elapsed / swingDurationMs;
-      // Ease-in swing acceleration
-      const ease = Math.pow(progress, 2.5);
-      const currentAngle = maxPull - (maxPull - avgStop) * ease;
-      
-      renderer.drawArm(currentAngle, masterRun.config.armHole, true);
-      requestAnimationFrame(step);
-    } else {
-      // 2. Flight & Impact Phase
-      renderer.drawArm(avgStop, masterRun.config.armHole, false);
-      const flightElapsed = elapsed - swingDurationMs;
-      const progress = Math.min(1.0, flightElapsed / flightDurationMs);
-
-      // Render each projectile's ballistic trajectory
-      runs.forEach(run => {
-        if (run.actualDistance <= 0) return;
-
-        const startX = run.phys.startX;
-        const startY = run.phys.startY;
-        const targetX = startX + run.actualDistance;
-
-        // Current horizontal position
-        const curX = startX + (targetX - startX) * progress;
-        
-        // Exact parabolic arc calibrated from release height (startY) to ground (0)
-        // y(t) = startY + (4*peakHeight - startY)*(t/T) - 4*peakHeight*(t/T)^2
-        const peakHeight = Math.max(startY + 0.3, run.actualDistance * 0.28);
-        const curY = Math.max(0, startY * (1 - progress) + 4 * peakHeight * progress * (1 - progress));
-
-        if (progress < 1.0) {
-          run.trajectoryPoints.push({ x: curX, y: curY });
-          renderer.drawProjectile(curX, curY, run.color);
-        } else {
-          // Final landing position
-          if (!run.landed) {
-            run.trajectoryPoints.push({ x: targetX, y: 0 });
-            run.landed = true;
-          }
-          renderer.drawProjectile(targetX, 0, run.color);
-        }
-
-        // Draw trajectory trail
-        renderer.drawTrajectory(run.trajectoryPoints, run.color);
-
-        // Draw landing marker flag once grounded
-        if (progress >= 1.0) {
-          renderer.drawLandingMarker(targetX, `C${run.config.id}`, run.color);
-        }
-      });
-
-      if (progress < 1.0) {
-        requestAnimationFrame(step);
-      } else {
-        if (onComplete) onComplete();
-      }
+    if (elapsed < SWING_MS) {
+      // Accelerating swing: the band does most of its work late.
+      const progress = (elapsed / SWING_MS) ** 2.5;
+      renderer.drawArm(startAngle - (startAngle - stopAngle) * progress, armHole, true);
+      requestAnimationFrame(frame);
+      return;
     }
+
+    renderer.drawArm(stopAngle, armHole, false);
+
+    // Simulated seconds since release, slowed by FLIGHT_TIME_SCALE for viewing.
+    const simTime = (elapsed - SWING_MS) / (1000 * FLIGHT_TIME_SCALE);
+    let allLanded = true;
+
+    animated.forEach((shot, i) => {
+      const landed = simTime >= shot.launch.flightTime;
+      const point = trajectoryAt(shot.launch, landed ? shot.launch.flightTime : simTime, shot.rangeScale);
+
+      shot.trail.push(point);
+      renderer.drawTrajectory(shot.trail, shot.color);
+      renderer.drawProjectile(point.x, point.y, shot.color);
+
+      if (landed) {
+        renderer.drawLandingMarker(
+          shot.distance, `#${shot.config.id}`, shot.color,
+          shot.rep === 1 ? 0 : (i % 3) + 1
+        );
+      } else {
+        allLanded = false;
+      }
+    });
+
+    if (allLanded) finish();
+    else requestAnimationFrame(frame);
   }
 
-  requestAnimationFrame(step);
+  requestAnimationFrame(frame);
 }
 
-/**
- * Exports current simulation results as a CSV file.
- */
+/* -------------------------------------------------------------- data export */
+
+const EXPORT_HEADERS = [
+  'Batch', 'Config_ID', 'Replicate',
+  'Pull_Angle_deg', 'Stop_Angle_deg', 'Bungee_Pos', 'Arm_Hole', 'Pin_Elevation',
+  'Distance_m', 'Model_Sigma_m', 'Release_Velocity_mps', 'Launch_Angle_deg'
+];
+
+/** One export row per recorded shot - raw data, ready for Minitab or JMP. */
+function exportRows() {
+  return collectedShots.map(s => [
+    s.batch, s.config.id, s.rep,
+    s.config.pullBackAngle, s.config.stopAngle, s.config.bungeePosition,
+    s.config.armHole, s.config.pinElevation,
+    s.distance.toFixed(3), s.launch.variation.toFixed(3),
+    s.launch.releaseVelocity.toFixed(2), s.launch.launchAngleDeg.toFixed(2)
+  ]);
+}
+
 function exportResultsToCSV() {
-  if (!lastResults || lastResults.length === 0) {
-    alert('No results available to export. Please run a simulation first.');
+  if (collectedShots.length === 0) {
+    setStatus('No results to export - run a batch first.', 'error');
     return;
   }
 
-  const headers = ['Config_ID', 'Pull_Angle_deg', 'Stop_Angle_deg', 'Bungee_Pos', 'Arm_Hole', 'Pin_Elevation', 'Distance_m', 'Variation_m', 'Release_Velocity_mps'];
-  const rows = lastResults.map(r => [
-    r.config.id,
-    r.config.pullBackAngle,
-    r.config.stopAngle,
-    r.config.bungeePosition,
-    r.config.armHole,
-    r.config.pinElevation,
-    r.actualDistance.toFixed(3),
-    r.variation.toFixed(3),
-    r.phys.releaseVelocity.toFixed(2)
-  ]);
-
-  const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
+  const csv = [EXPORT_HEADERS.join(','), ...exportRows().map(r => r.join(','))].join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = `catapult_simulation_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `catapult_doe_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
+  setStatus(`Exported ${collectedShots.length} shots to CSV.`, 'success');
 }
 
-/**
- * Copies results in tab-separated format for quick pasting into Excel or Minitab.
- */
 function copyResultsToClipboard() {
-  if (!lastResults || lastResults.length === 0) {
-    alert('No results to copy. Please run a simulation first.');
+  if (collectedShots.length === 0) {
+    setStatus('No results to copy - run a batch first.', 'error');
     return;
   }
 
-  const headers = ['Config_ID', 'Pull_Angle', 'Stop_Angle', 'Bungee', 'Arm_Hole', 'Pin_Elevation', 'Distance_m', 'Variation_m', 'Velocity_mps'];
-  const rows = lastResults.map(r => [
-    r.config.id,
-    r.config.pullBackAngle,
-    r.config.stopAngle,
-    r.config.bungeePosition,
-    r.config.armHole,
-    r.config.pinElevation,
-    r.actualDistance.toFixed(3),
-    r.variation.toFixed(3),
-    r.phys.releaseVelocity.toFixed(2)
-  ]);
-
-  const text = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
-  navigator.clipboard.writeText(text)
-    .then(() => alert('Results copied to clipboard (Tab-separated for Excel / Minitab)!'))
-    .catch(() => alert('Failed to copy to clipboard.'));
+  const tsv = [EXPORT_HEADERS.join('\t'), ...exportRows().map(r => r.join('\t'))].join('\n');
+  navigator.clipboard.writeText(tsv)
+    .then(() => setStatus(`Copied ${collectedShots.length} shots (tab-separated) to the clipboard.`, 'success'))
+    .catch(() => setStatus('Clipboard access was refused by the browser.', 'error'));
 }

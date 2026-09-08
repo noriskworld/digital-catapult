@@ -331,8 +331,7 @@ td input:focus {
 
 /* Canvas arena */
 .canvas-container {
-  display: flex;
-  justify-content: center;
+  display: block;
   background: #0f172a;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -342,8 +341,8 @@ td input:focus {
 
 canvas {
   display: block;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 400px;
 }
 
 footer {
@@ -374,5 +373,65 @@ footer {
 
   .results-actions .btn {
     flex: 1;
+  }
+}
+
+/* Status bar - replaces the blocking alert() dialogs */
+.status-bar {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  background-color: rgba(148, 163, 184, 0.08);
+  color: var(--text-secondary);
+}
+
+.status-bar.status-success {
+  border-color: rgba(16, 185, 129, 0.45);
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #6ee7b7;
+}
+
+.status-bar.status-error {
+  border-color: rgba(239, 68, 68, 0.45);
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+/* Replicates control */
+.replicates-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.replicates-field input {
+  width: 4.25rem;
+}
+
+/* Results table run identifier */
+.color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.rep-tag {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  canvas {
+    height: 300px;
   }
 }

@@ -1,155 +1,206 @@
 /**
- * Calculates the catapult throw distance, ballistic properties, and landing variation
- * based on input factor settings using an energy conservation and Newtonian kinematic model.
- * 
- * @param {number} pullBackAngle - (90 - 200 degrees; 90 = vertical, 180 = horizontal back)
- * @param {number} stopAngle - (90 - 120 degrees; angle where catapult arm hits the stop)
- * @param {number} bungeePosition - (1.0 - 5.0; elastic tension setting)
- * @param {number} armHole - (1.0 - 5.0; cup placement position along the arm)
- * @param {number} pinElevation - (1.0 - 5.0; modifies the physical stop angle)
- * @returns {object} Calculated launch and kinematic metrics
+ * Catapult physics solver.
+ *
+ * Pure functions only - no DOM, no randomness except where explicitly named.
+ * Geometry and material constants live in constants.js so that the renderer
+ * draws exactly the machine that this file solves.
+ *
+ * Model chain:
+ *   band extension -> elastic strain energy -> angular velocity at the stop
+ *   -> tangential release velocity -> ballistic flight to ground.
  */
-export function calculateLaunch(pullBackAngle, stopAngle, bungeePosition, armHole, pinElevation) {
-  const g = 9.81; 
-  
-  // Physical parameters
-  const armLength = 1.0; // meters
-  const tension = 60 + (bungeePosition * 28); // 88 - 200 N/m spring rate
-  const cupPlacement = 0.5 + (armHole * 0.1); // 0.6 - 1.0 ratio along arm
-  const effectiveStopAngle = stopAngle + (pinElevation * 1.5); // pin raises mechanical stop
-  
-  // Valid launch requires pulling back past the stop angle
-  if (pullBackAngle <= effectiveStopAngle) {
-    return {
-      distance: 0,
-      variation: 0,
-      releaseVelocity: 0,
-      launchAngleDeg: 0,
-      flightTime: 0,
-      startX: 0,
-      startY: 0,
-      vCos: 0,
-      vSin: 0,
-      effectiveStopAngle
-    }; 
-  }
 
-  // Convert angles to radians
-  // Standard math angle: 90 is UP (+y), 180 is LEFT (-x)
-  const thetaP = pullBackAngle * (Math.PI / 180);
-  const thetaS = effectiveStopAngle * (Math.PI / 180);
+import {
+  GRAVITY,
+  ARM_LENGTH,
+  ARM_MASS,
+  PROJECTILE_MASS,
+  BAND_ANCHOR,
+  BAND_ATTACH_RATIO,
+  BAND_REST_LENGTH,
+  DRAG_FACTOR,
+  springRate,
+  cupRadius,
+  effectiveStopAngle as computeEffectiveStopAngle
+} from './constants.js';
 
-  // Band anchor positioned on forward upright frame (x=0.25, y=0.35)
-  // Guarantees strictly monotonic extension across the full 90-200 deg pullback range
-  const anchorX = 0.25; 
-  const anchorY = 0.35;
-  const attachDist = armLength * 0.4; // band attaches at 40% of arm length
+const DEG = Math.PI / 180;
 
-  const armPx = attachDist * Math.cos(thetaP);
-  const armPy = attachDist * Math.sin(thetaP);
-  const distPull = Math.sqrt(Math.pow(armPx - anchorX, 2) + Math.pow(armPy - anchorY, 2));
-
-  const armSx = attachDist * Math.cos(thetaS);
-  const armSy = attachDist * Math.sin(thetaS);
-  const distStop = Math.sqrt(Math.pow(armSx - anchorX, 2) + Math.pow(armSy - anchorY, 2));
-
-  const restLength = 0.20;
-  const extPull = Math.max(0, distPull - restLength);
-  const extStop = Math.max(0, distStop - restLength);
-
-  // Elastic strain energy released between pullback and stop: E = 0.5 * k * (x_pull^2 - x_stop^2)
-  const energyStored = 0.5 * tension * (Math.pow(extPull, 2) - Math.pow(extStop, 2));
-
-  if (energyStored <= 0) {
-    return {
-      distance: 0,
-      variation: 0,
-      releaseVelocity: 0,
-      launchAngleDeg: 0,
-      flightTime: 0,
-      startX: 0,
-      startY: 0,
-      vCos: 0,
-      vSin: 0,
-      effectiveStopAngle
-    };
-  }
-
-  // Mass & Rotational Inertia
-  const mass = 0.045; // 45g projectile (e.g. golf ball / ping pong ball)
-  const armMass = 0.25; // 250g arm
-  const cupDist = cupPlacement * armLength;
-  const momentOfInertia = (armMass * Math.pow(armLength, 2) / 3) + (mass * Math.pow(cupDist, 2));
-
-  // Angular velocity at stop: omega = sqrt(2 * E / I)
-  const omega = Math.sqrt((2 * energyStored) / momentOfInertia);
-  const releaseVelocity = omega * cupDist;
-
-  // Tangential velocity vector at arm stop angle (moving towards positive X)
-  const launchAngle = thetaS - (Math.PI / 2);
-  
-  // Starting coordinates of the projectile from pivot at release
-  const startX = cupDist * Math.cos(thetaS);
-  const startY = cupDist * Math.sin(thetaS);
-
-  const vCos = releaseVelocity * Math.cos(launchAngle);
-  const vSin = releaseVelocity * Math.sin(launchAngle);
-
-  if (vCos <= 0) {
-    return {
-      distance: 0,
-      variation: 0,
-      releaseVelocity: 0,
-      launchAngleDeg: launchAngle * 180 / Math.PI,
-      flightTime: 0,
-      startX,
-      startY,
-      vCos: 0,
-      vSin: 0,
-      effectiveStopAngle
-    };
-  }
-
-  // Exact vacuum ballistic flight time to ground (y = 0):
-  // y(t) = startY + vSin * t - 0.5 * g * t^2 = 0
-  const flightTime = (vSin + Math.sqrt(Math.pow(vSin, 2) + 2 * g * startY)) / g;
-  
-  // Nominal horizontal travel from release point to ground impact
-  let nominalDistance = vCos * flightTime;
-
-  // Realistic aerodynamic drag calibration
-  const dragFactor = 0.02;
-  const effectiveDistance = nominalDistance / (1 + dragFactor * releaseVelocity);
-
-  // Six Sigma process noise: variation increases with tension and longer arm radius
-  const variation = (effectiveDistance * 0.035) * (tension / 110) * (1 + 0.06 * (armHole - 1));
-
+/**
+ * A launch that never leaves the cup. Every field of a successful result is
+ * present so callers never have to guard against undefined.
+ *
+ * @param {object} known - fields that are meaningful even for a dud launch
+ * @returns {LaunchResult}
+ */
+function nullLaunch(known = {}) {
   return {
-    distance: Math.max(0, effectiveDistance),
-    variation: Math.max(0.01, variation),
-    releaseVelocity,
-    launchAngleDeg: launchAngle * (180 / Math.PI),
-    flightTime,
-    startX,
-    startY,
-    vCos: vCos / (1 + dragFactor * releaseVelocity), // effective horizontal velocity
-    vSin,
-    effectiveStopAngle
+    distance: 0,
+    variation: 0,
+    releaseVelocity: 0,
+    launchAngleDeg: 0,
+    flightTime: 0,
+    releaseX: 0,
+    releaseY: 0,
+    vx: 0,
+    vy: 0,
+    effectiveStopAngle: 0,
+    valid: false,
+    reason: 'no launch',
+    ...known
   };
 }
 
 /**
- * Generates a normally distributed random number using Box-Muller transform.
- * Guarded against Math.random() returning 0.
- * 
- * @param {number} mean 
- * @param {number} stdDev 
+ * Straight-line distance from the band anchor to its attachment point on the
+ * arm when the arm sits at the given angle.
+ *
+ * @param {number} angleRad - arm angle in radians
+ * @returns {number} band length in metres
+ */
+function bandLength(angleRad) {
+  const attach = ARM_LENGTH * BAND_ATTACH_RATIO;
+  const dx = attach * Math.cos(angleRad) - BAND_ANCHOR.x;
+  const dy = attach * Math.sin(angleRad) - BAND_ANCHOR.y;
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Solves a single launch.
+ *
+ * `distance` is measured along the ground from the *pivot* (x = 0), which is
+ * where the on-screen ruler is zeroed - not from the release point, which sits
+ * behind the pivot whenever the stop angle exceeds 90 degrees.
+ *
+ * @param {number} pullBackAngle - 90-200 deg; arm angle when loaded
+ * @param {number} stopAngle - 90-120 deg; mechanical stop position
+ * @param {number} bungeePosition - 1.0-5.0; band tension setting
+ * @param {number} armHole - 1.0-5.0; cup position along the arm
+ * @param {number} pinElevation - 1.0-5.0; raises the effective stop angle
+ * @returns {LaunchResult}
+ */
+export function calculateLaunch(pullBackAngle, stopAngle, bungeePosition, armHole, pinElevation) {
+  const stopDeg = computeEffectiveStopAngle(stopAngle, pinElevation);
+
+  // The arm must be drawn back past the stop or there is no swing at all.
+  if (pullBackAngle <= stopDeg) {
+    return nullLaunch({ effectiveStopAngle: stopDeg, reason: 'pull-back does not clear the stop' });
+  }
+
+  const thetaPull = pullBackAngle * DEG;
+  const thetaStop = stopDeg * DEG;
+
+  const extensionPull = Math.max(0, bandLength(thetaPull) - BAND_REST_LENGTH);
+  const extensionStop = Math.max(0, bandLength(thetaStop) - BAND_REST_LENGTH);
+
+  // Strain energy released over the swing: E = 1/2 k (x_pull^2 - x_stop^2)
+  const energy = 0.5 * springRate(bungeePosition) * (extensionPull ** 2 - extensionStop ** 2);
+  if (energy <= 0) {
+    return nullLaunch({ effectiveStopAngle: stopDeg, reason: 'band stores no usable energy' });
+  }
+
+  // Rod about one end, plus the projectile as a point mass at the cup.
+  const cupDist = cupRadius(armHole);
+  const inertia = (ARM_MASS * ARM_LENGTH ** 2) / 3 + PROJECTILE_MASS * cupDist ** 2;
+
+  const omega = Math.sqrt((2 * energy) / inertia);
+  const releaseVelocity = omega * cupDist;
+
+  // Velocity is tangential to the arm, so it leads the arm angle by 90 degrees.
+  const launchAngle = thetaStop - Math.PI / 2;
+  const releaseX = cupDist * Math.cos(thetaStop);
+  const releaseY = cupDist * Math.sin(thetaStop);
+
+  const vxRaw = releaseVelocity * Math.cos(launchAngle);
+  const vy = releaseVelocity * Math.sin(launchAngle);
+
+  if (vxRaw <= 0) {
+    return nullLaunch({
+      effectiveStopAngle: stopDeg,
+      launchAngleDeg: launchAngle / DEG,
+      releaseX,
+      releaseY,
+      reason: 'projectile is not travelling downrange'
+    });
+  }
+
+  // Lumped aerodynamic loss: faster shots bleed proportionally more range.
+  // Applied to the horizontal component so that releaseX + vx * flightTime
+  // reproduces `distance` exactly, keeping the drawn arc and the number honest.
+  const vx = vxRaw / (1 + DRAG_FACTOR * releaseVelocity);
+
+  // Time to fall from the release height back to the ground:
+  //   releaseY + vy t - 1/2 g t^2 = 0
+  const flightTime = (vy + Math.sqrt(vy ** 2 + 2 * GRAVITY * releaseY)) / GRAVITY;
+
+  // Ground range measured from the pivot, matching the on-screen ruler.
+  const distance = Math.max(0, releaseX + vx * flightTime);
+
+  // Process noise grows with band tension and with cup radius, mirroring how a
+  // real catapult gets less repeatable as you wind it up.
+  const variation = Math.max(
+    0.01,
+    distance * 0.035 * (springRate(bungeePosition) / 110) * (1 + 0.06 * (armHole - 1))
+  );
+
+  return {
+    distance,
+    variation,
+    releaseVelocity,
+    launchAngleDeg: launchAngle / DEG,
+    flightTime,
+    releaseX,
+    releaseY,
+    vx,
+    vy,
+    effectiveStopAngle: stopDeg,
+    valid: true,
+    reason: ''
+  };
+}
+
+/**
+ * Position of the projectile at time t during flight, in metres from the pivot.
+ *
+ * `rangeScale` stretches the horizontal axis so a shot perturbed by process
+ * noise still follows a true parabola but lands on its actual mark. Pass the
+ * ratio of the realised ground range to the nominal one.
+ *
+ * @param {LaunchResult} launch
+ * @param {number} t - seconds since release
+ * @param {number} [rangeScale=1]
+ * @returns {{x: number, y: number}}
+ */
+export function trajectoryAt(launch, t, rangeScale = 1) {
+  return {
+    x: launch.releaseX + launch.vx * rangeScale * t,
+    y: Math.max(0, launch.releaseY + launch.vy * t - 0.5 * GRAVITY * t * t)
+  };
+}
+
+/**
+ * Apex height of the flight, in metres above the ground.
+ *
+ * @param {LaunchResult} launch
  * @returns {number}
  */
-export function randomNormal(mean, stdDev) {
-  // Ensure u1 is in (0, 1] to prevent Math.log(0) = -Infinity
-  const u1 = 1.0 - Math.random();
-  const u2 = Math.random();
-  const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+export function apexHeight(launch) {
+  if (!launch.valid || launch.vy <= 0) return launch.releaseY;
+  return launch.releaseY + launch.vy ** 2 / (2 * GRAVITY);
+}
+
+/**
+ * Normally distributed sample via the Box-Muller transform.
+ *
+ * @param {number} mean
+ * @param {number} stdDev
+ * @param {() => number} [rng=Math.random] - injectable for deterministic tests
+ * @returns {number}
+ */
+export function randomNormal(mean, stdDev, rng = Math.random) {
+  // 1 - rng() keeps u1 in (0, 1] so Math.log never sees zero.
+  const u1 = 1 - rng();
+  const u2 = rng();
+  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   return z0 * stdDev + mean;
 }
