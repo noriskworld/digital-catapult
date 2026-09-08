@@ -110,9 +110,25 @@ Open your browser at the displayed local URL (typically `http://localhost:5173`)
 
 ### Production Build
 ```bash
-npm run build
-npm run preview
+npm run build       # multi-file build in dist/, for a web server
+npm run preview     # serve the built dist/
 ```
+
+### Sharing it with people who don't have npm
+
+```bash
+npm run build:standalone     # -> standalone/digital-catapult.html
+```
+
+This produces the **entire application as one self-contained 35 kB HTML file** —
+no server, no install, no internet connection, no external references of any
+kind. Double-click it, host it, email it, or drop it on a network share. A
+current copy is committed to the repository, so most people can just download
+that file and open it.
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for hosting options, SharePoint and
+Confluence specifics, browser requirements, and the notes an IT security review
+will ask for.
 
 ### Design of Experiments course
 

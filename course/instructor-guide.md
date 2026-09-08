@@ -41,6 +41,13 @@ in the offline toolkit alike. This has been verified shot-for-shot.
 Students can therefore either generate their own data or use
 `course/data/*.csv`; both routes give the numbers in this key.
 
+**Distributing the simulator.** Students do not need Node. Hand out
+`standalone/digital-catapult.html` — one 35 kB file that runs from a
+double-click, a network share or any static host, offline, with no install
+rights. See [DEPLOYMENT.md](../DEPLOYMENT.md) for SharePoint and Confluence
+specifics and for the answers a security review will want. Build a fresh copy
+with `npm run build:standalone`.
+
 **Regenerating everything:**
 
 ```bash

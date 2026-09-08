@@ -12,8 +12,11 @@ is the point of the whole course.
 
 ## What you need
 
-- The simulator running (`npm run dev`, then open the local URL), **or** the
-  pre-generated data sets in `course/data/`.
+- **The simulator.** Easiest: open `digital-catapult.html` — a single file that
+  runs in any current browser with nothing to install. (If you have Node
+  installed you can instead run `npm run dev` and open the local URL.)
+  Alternatively, use the pre-generated data sets in `course/data/` and skip
+  firing shots altogether.
 - Software to fit models: Minitab, JMP, Excel with Analysis ToolPak, R, or
   Python (`statsmodels`). The repository also ships a small analysis toolkit
   (see Appendix B) if you have none of those.

@@ -16,6 +16,8 @@ node --test --test-name-pattern="pivot"       # one test
 
 node doe/run-study.mjs                        # full sequential DOE study + answer key
 node doe/run-study.mjs --target=14 --write    # other target; --write refreshes course/data/
+
+npm run build:standalone                      # -> standalone/digital-catapult.html
 ```
 
 There is no linter and no `vite.config.*` — Vite runs zero-config with `index.html` as the entry point and `/main.js` as the only module script.
@@ -61,6 +63,24 @@ The arm swing itself is still a shared visual approximation (max pull-back → m
 `redrawArena()` in [main.js](main.js) paints either the last finished batch (`arenaBatch`) or the idle preview, and every path that touches the canvas goes through it. This exists because binding `resize` straight to the preview wiped a completed batch off screen whenever the window was resized.
 
 `animateShots()` also arms a **watchdog** `setTimeout`. `requestAnimationFrame` is throttled to a standstill in background tabs and fires only ~2 frames in headless Chrome; without the watchdog the arena is left mid-flight and the Run button stays disabled forever. `finish()` is idempotent — the frame loop and the watchdog race, and either may win.
+
+### The standalone build must stay file://-safe
+
+`npm run build:standalone` emits one self-contained HTML file, committed at
+[standalone/digital-catapult.html](standalone/digital-catapult.html), because most users have no
+toolchain (see [DEPLOYMENT.md](DEPLOYMENT.md)). Two constraints keep it working, and
+[scripts/build-standalone.mjs](scripts/build-standalone.mjs) fails the build rather than shipping a
+page that silently does nothing:
+
+- **It must not be an ES module.** [vite.config.js](vite.config.js) selects an IIFE bundle for
+  `--mode standalone`; module scripts loaded over `file://` are treated as
+  cross-origin and blocked.
+- **Nothing may be referenced by URL.** No CDN, font, or image links. The
+  security notes in DEPLOYMENT.md assert zero network calls and zero external
+  URLs, and both are verifiable with grep — keep them true.
+
+Browser storage is likewise unused, deliberately: it is one of the claims made
+to IT reviewers.
 
 ### Renderer scaling
 

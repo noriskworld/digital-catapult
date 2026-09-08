@@ -634,14 +634,64 @@ function exportResultsToCSV() {
   setStatus(`Exported ${collectedShots.length} shots to CSV.`, 'success');
 }
 
-function copyResultsToClipboard() {
+/**
+ * Copies text to the clipboard, coping with locked-down environments.
+ *
+ * navigator.clipboard is unavailable outside a secure context, and in some
+ * managed browsers its promise is rejected - or simply never settles - because
+ * the permission is denied without a prompt. So: try the modern API with a
+ * timeout, then fall back to the old select-and-execCommand trick, which still
+ * works almost everywhere.
+ *
+ * @param {string} text
+ * @returns {Promise<boolean>} whether the text reached the clipboard
+ */
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await Promise.race([
+        navigator.clipboard.writeText(text),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), 1500))
+      ]);
+      return true;
+    } catch {
+      // Fall through to the legacy path rather than leaving the user guessing.
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.cssText = 'position:fixed;top:-1000px;left:0;opacity:0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, text.length);
+
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  }
+  textarea.remove();
+  return copied;
+}
+
+async function copyResultsToClipboard() {
   if (collectedShots.length === 0) {
     setStatus('No results to copy - run a batch first.', 'error');
     return;
   }
 
   const tsv = [EXPORT_HEADERS.join('\t'), ...exportRows().map(r => r.join('\t'))].join('\n');
-  navigator.clipboard.writeText(tsv)
-    .then(() => setStatus(`Copied ${collectedShots.length} shots (tab-separated) to the clipboard.`, 'success'))
-    .catch(() => setStatus('Clipboard access was refused by the browser.', 'error'));
+  setStatus('Copying...', 'info');
+
+  if (await copyToClipboard(tsv)) {
+    setStatus(`Copied ${collectedShots.length} shots (tab-separated) to the clipboard.`, 'success');
+  } else {
+    setStatus(
+      'This browser blocked clipboard access. Use Export CSV instead - it saves the same data as a file.',
+      'error'
+    );
+  }
 }

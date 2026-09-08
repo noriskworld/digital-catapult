@@ -10,7 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-standalone
 *.local
+
+# standalone/digital-catapult.html is deliberately committed: it is the copy
+# people without npm download and open. See DEPLOYMENT.md.
 
 # Editor directories and files
 .vscode/*
