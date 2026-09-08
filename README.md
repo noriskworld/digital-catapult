@@ -35,8 +35,8 @@ The **Digital Catapult Process Simulator** replaces physical desktop catapults w
 
 1. **Distance from Pivot ($m$):**
    - Ground impact point measured along the arena ruler from the pivot at $0\text{m}$. This is the response to analyse. Note that the cup sits *behind* the pivot at release whenever the effective stop angle exceeds $90^\circ$; the reported distance accounts for that offset, so the number always matches the landing flag on the ruler.
-2. **Model $\sigma$ ($\pm m$):**
-   - The noise the simulator injects into each shot, growing with band tension and cup radius. It is a property of the *settings*, not a measurement — regressing on it just recovers the generating formula. To obtain a genuine variation response, fire several **replicates** and take the standard deviation of the observed distances.
+2. **Predicted $\sigma$ ($\pm m$):**
+   - The model's estimate of shot-to-shot spread at these settings. It is a model output, not a measurement. To obtain a genuine variation response, fire several **replicates** and take the standard deviation of the observed distances.
 3. **Release Velocity ($m/s$):**
    - Tangential speed of the ball as it separates from the cup.
 
@@ -62,7 +62,12 @@ With launch angle $\alpha = \theta_{\text{eff}} - 90^\circ$ and release height $
 $$t_{\text{flight}} = \frac{v_0 \sin\alpha + \sqrt{(v_0 \sin\alpha)^2 + 2 g h_0}}{g}$$
 $$x(t) = x_{\text{cup}} + v_x t, \qquad y(t) = y_{\text{cup}} + (v_0 \sin\alpha) t - \frac{1}{2} g t^2$$
 
-### 4. Aerodynamic Loss
+### 4. Random Effects
+The machine is never set up twice in exactly the same state. Every shot perturbs the *physical* quantities — band stiffness ($2\%$), stop-angle rebound, cup radius ($4\text{ mm}$), operator pull-back error ($0.6^\circ$), ball mass ($1.5\%$) — and re-solves the mechanics, before adding tape-measure error ($4\text{ cm}$). Scatter in distance is therefore *emergent*: it depends on the settings rather than following an assumed formula.
+
+Crucially, the release-angle scatter is multiplied by $(1 + 0.055\,v_0)$: the arm rebounds off the stop less repeatably the harder it arrives. A flat, fast shot and a lofted, slow one can travel the same distance while scattering by different amounts — which is what makes minimising variation a genuinely separate problem from hitting a target.
+
+### 5. Aerodynamic Loss
 A lumped drag term is applied to the horizontal component, $v_x = v_0\cos\alpha / (1 + 0.02\,v_0)$, so that faster shots bleed proportionally more range. Because the loss lives in $v_x$ rather than being applied to the finished number, $x(t_{\text{flight}})$ reproduces the reported distance exactly — the drawn arc and the recorded response are the same trajectory.
 
 ---
@@ -71,7 +76,8 @@ A lumped drag term is applied to the horizontal component, $v_x = v_0\cos\alpha 
 
 - **Live Ballistic Visualizer:** HTML5 Canvas rendering of the frame, swinging arm, stretching band, a graduated ground ruler, and projectile arcs sampled directly from the solved kinematics — the animation is the physics, not a decorative approximation.
 - **Auto-Scaling Arena:** The view fits itself to the longest shot and the highest arc in a batch, so results stay on screen from a 1 m dribble to a 30 m throw.
-- **Replicates:** Fire 1–30 shots per configuration in a single batch. Results accumulate across batches until cleared, so a fully replicated design can be built up and exported in one go.
+- **Replicates and seeding:** Fire 1–30 shots per configuration in a single batch. Results accumulate across batches until cleared. Set a seed to make a whole data set reproducible; leave it blank for fresh randomness.
+- **Built-in DOE designs:** Load a full factorial, a fractional factorial (resolution III or V), centre points, or a Box-Behnken response surface directly into the run table.
 - **Simultaneous Multi-Run Animation:** Run every configuration at once with unique tracer colors and stacked, numbered landing flags.
 - **Excel / Google Sheets Copy-Paste:** Copy any 5-column trial table directly from a spreadsheet and paste into the configuration panel.
 - **DOE Response Tracking:** Input factor settings and output responses side-by-side, one row per shot.
@@ -108,6 +114,22 @@ npm run build
 npm run preview
 ```
 
+### Design of Experiments course
+
+The repository ships a complete DOE teaching package built on the simulator:
+
+- **[course/student-workbook.md](course/student-workbook.md)** — five labs taking students from a 5-factor screening design to robust settings that hit a target distance.
+- **[course/instructor-guide.md](course/instructor-guide.md)** — full answer key, ground truth on the noise model, timings, common errors and a marking rubric.
+- **[course/data/](course/data/)** — pre-generated data sets for every design.
+
+```bash
+node doe/run-study.mjs             # run the whole study and print the answer key
+node doe/run-study.mjs --target=14 # optimise to a different target distance
+node doe/run-study.mjs --write     # also regenerate course/data/
+```
+
+The study runs three designs in sequence — a 2^(5-2) resolution III screen, a 2^(5-1) resolution V de-aliasing design with centre points, and a Box-Behnken response surface — then fits a quadratic model, solves it for a target distance, and confirms the answer against the simulator. Designs can also be loaded straight into the app from the *Load DOE design* menu, and the *Seed* field makes any data set reproducible.
+
 ### Tests
 The physics solver is pure and covered by `node:test` — no test framework to install.
 ```bash
@@ -125,7 +147,9 @@ node --test --test-name-pattern="pivot"    # one test
 | `constants.js` | Single source of truth for geometry, masses, factor bounds and the shared coordinate convention. |
 | `physics.js` | Pure solver: `calculateLaunch`, `trajectoryAt`, `apexHeight`, `randomNormal`. No DOM. |
 | `animation.js` | `CatapultRenderer` — all metre→pixel conversion, drawing and auto-scaling. |
-| `main.js` | DOM wiring, run batching and replication, the frame loop, CSV/TSV export. |
+| `main.js` | DOM wiring, run batching and replication, the frame loop, the DOE design loader, CSV/TSV export. |
+| `doe/` | Design generators, OLS/ANOVA/optimisation, and the study runner behind the course material. |
+| `course/` | Student workbook, instructor answer key, and pre-generated data sets. |
 
 Because `physics.js` and `animation.js` both import their geometry from `constants.js`, the drawn machine cannot drift out of step with the solved one.
 

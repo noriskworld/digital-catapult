@@ -87,6 +87,19 @@
         <div class="controls row-actions">
           <button id="add-row-btn" class="btn secondary">+ Add Configuration</button>
           <button id="clear-table-btn" class="btn delete">Clear Table</button>
+          <label class="design-field" for="design-select">
+            Load DOE design
+            <select id="design-select">
+              <option value="">Choose a design&hellip;</option>
+              <option value="frac-iii">Screening &mdash; 2^(5-2) resolution III (8 runs)</option>
+              <option value="frac-v">De-alias &mdash; 2^(5-1) resolution V (16 runs)</option>
+              <option value="frac-v-cp">2^(5-1) resolution V + 4 centre points (20 runs)</option>
+              <option value="full">Full factorial &mdash; 2^5 (32 runs)</option>
+              <option value="full-cp">Full factorial 2^5 + 4 centre points (36 runs)</option>
+              <option value="bbd">Response surface &mdash; Box-Behnken, 3 factors (15 runs)</option>
+            </select>
+          </label>
+          <button id="load-design-btn" class="btn secondary">Load</button>
         </div>
       </section>
 
@@ -99,6 +112,11 @@
               Replicates
               <input type="number" id="replicates-input" min="1" max="30" step="1" value="1"
                      title="Shots fired per configuration. Use 3 or more to estimate variation from the data.">
+            </label>
+            <label class="replicates-field" for="seed-input">
+              Seed
+              <input type="text" id="seed-input" inputmode="numeric" placeholder="random"
+                     title="Leave blank for genuine randomness, or enter a number so the same data set can be reproduced.">
             </label>
             <button id="launch-btn" class="btn primary">🚀 Run All Configurations</button>
           </div>
@@ -130,7 +148,7 @@
                 <th>Arm Hole</th>
                 <th>Pin Elev</th>
                 <th>Distance from Pivot</th>
-                <th>Model &sigma; (&plusmn;1&sigma;)</th>
+                <th>Predicted &sigma;</th>
                 <th>Release Velocity</th>
               </tr>
             </thead>

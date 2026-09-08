@@ -1,7 +1,11 @@
 import './style.css';
-import { calculateLaunch, randomNormal, trajectoryAt, apexHeight } from './physics.js';
+import { calculateLaunch, simulateShot, predictSigma, makeRng, trajectoryAt, apexHeight } from './physics.js';
 import { CatapultRenderer } from './animation.js';
 import { FACTOR_BOUNDS, clamp } from './constants.js';
+import {
+  fullFactorial2, fractionalFactorial2, boxBehnken, withCentrePoints
+} from './doe/designs.js';
+import { FACTORS, RSM_FACTORS, settingsFor } from './doe/catapult-doe.js';
 
 const RUN_COLORS = [
   '#ef4444', '#38bdf8', '#10b981', '#f59e0b',
@@ -25,6 +29,9 @@ let batchSeq = 0;
 let arenaBatch = null;
 /** Every shot recorded since the last "Clear Results" - this is the export set. */
 let collectedShots = [];
+/** Draw source for shot noise; seeded on demand so a class can share a data set. */
+let rng = Math.random;
+let activeSeed = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   renderer = new CatapultRenderer('sim-canvas');
@@ -56,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('config-tbody').addEventListener('input', showPreview);
 
   document.querySelector('.config-panel')?.addEventListener('paste', handleTablePaste);
+  document.getElementById('load-design-btn')?.addEventListener('click', loadSelectedDesign);
 
   // Keep the arena crisp through resizes without discarding the last batch.
   window.addEventListener('resize', () => {
@@ -214,6 +222,75 @@ function addConfigRow(
 }
 
 /**
+ * The standard designs offered in the UI. Each returns coded rows plus the
+ * factor definitions those codes should be decoded against, so a screening
+ * design and a re-centred response-surface design can coexist in one menu.
+ */
+const DESIGN_LIBRARY = {
+  'frac-iii': {
+    label: '2^(5-2) resolution III screening',
+    factors: FACTORS,
+    build: () => fractionalFactorial2(5, ['D=AB', 'E=AC'])
+  },
+  'frac-v': {
+    label: '2^(5-1) resolution V',
+    factors: FACTORS,
+    build: () => fractionalFactorial2(5, ['E=ABCD'])
+  },
+  'frac-v-cp': {
+    label: '2^(5-1) resolution V with centre points',
+    factors: FACTORS,
+    build: () => withCentrePoints(fractionalFactorial2(5, ['E=ABCD']), 4)
+  },
+  full: {
+    label: '2^5 full factorial',
+    factors: FACTORS,
+    build: () => fullFactorial2(5)
+  },
+  'full-cp': {
+    label: '2^5 full factorial with centre points',
+    factors: FACTORS,
+    build: () => withCentrePoints(fullFactorial2(5), 4)
+  },
+  bbd: {
+    label: 'Box-Behnken response surface (A, B, C)',
+    factors: RSM_FACTORS,
+    build: () => boxBehnken(3)
+  }
+};
+
+/**
+ * Replaces the configuration table with a standard experimental design.
+ *
+ * Rows are loaded in standard (Yates) order so they can be checked against a
+ * textbook. Randomise the run order before drawing conclusions from anything
+ * that might drift over a session.
+ */
+function loadSelectedDesign() {
+  const key = document.getElementById('design-select')?.value;
+  const design = DESIGN_LIBRARY[key];
+  if (!design) {
+    setStatus('Choose a design from the list first.', 'error');
+    return;
+  }
+
+  const rows = design.build();
+  document.getElementById('config-tbody').innerHTML = '';
+  configSeq = 0;
+
+  for (const codedRow of rows) {
+    const s = settingsFor(codedRow, design.factors);
+    addConfigRow(s.pullBackAngle, s.stopAngle, s.bungeePosition, s.armHole, s.pinElevation);
+  }
+
+  showPreview();
+  const held = design.factors.length < 5
+    ? ` Factors outside the design are held at their centre values.`
+    : '';
+  setStatus(`Loaded ${design.label}: ${rows.length} runs.${held} Set replicates, then run.`, 'success');
+}
+
+/**
  * Pastes a TSV (Excel, Sheets) or CSV block into the configuration table.
  * Header rows are skipped by detecting a non-numeric first column.
  */
@@ -338,6 +415,15 @@ function runBatch() {
   const replicates = clamp(parseInt(repInput?.value, 10) || 1, 1, 30);
   if (repInput) repInput.value = replicates;
 
+  // A blank seed means genuine randomness. A seed restarts the generator at the
+  // top of every batch, so the same seed and the same design always produce the
+  // same data set - which is what lets a class compare answers, and an
+  // instructor hand out the identical experiment twice.
+  const seedRaw = document.getElementById('seed-input')?.value.trim();
+  const seed = seedRaw ? Number(seedRaw) : null;
+  activeSeed = Number.isFinite(seed) ? seed : null;
+  rng = activeSeed === null ? Math.random : makeRng(activeSeed);
+
   const launchBtn = document.getElementById('launch-btn');
   launchBtn.disabled = true;
   arenaBatch = null;
@@ -347,23 +433,27 @@ function runBatch() {
   let duds = 0;
 
   configs.forEach((config, idx) => {
+    // Nominal launch drives the drawn arc; each shot re-solves the physics
+    // with the machine's random effects applied.
     const launch = calculateLaunch(
       config.pullBackAngle, config.stopAngle, config.bungeePosition,
       config.armHole, config.pinElevation
     );
     if (!launch.valid) duds++;
+    const sigma = predictSigma(config);
 
     for (let rep = 1; rep <= replicates; rep++) {
-      // The realised shot: nominal range perturbed by the process noise.
-      const distance = launch.valid
-        ? Math.max(0, randomNormal(launch.distance, launch.variation))
-        : 0;
+      // Always draw, even for a dud (simulateShot reports zero for one). Keeping
+      // the number of draws per shot constant is what lets a given seed
+      // reproduce a data set exactly, in the app and in the offline toolkit.
+      const distance = simulateShot(config, rng).distance;
 
       shots.push({
         batch: batchSeq,
         rep,
         config,
         launch,
+        sigma,
         distance,
         color: RUN_COLORS[idx % RUN_COLORS.length],
         // Stretches the parabola so a noisy shot still lands on its own mark.
@@ -400,7 +490,7 @@ function appendResultRow(shot) {
     <td>${c.armHole}</td>
     <td>${c.pinElevation}</td>
     <td class="result-dist">${shot.distance.toFixed(2)} m</td>
-    <td class="result-var">&plusmn; ${shot.launch.variation.toFixed(3)} m</td>
+    <td class="result-var">&plusmn; ${shot.sigma.toFixed(3)} m</td>
     <td>${shot.launch.releaseVelocity.toFixed(1)} m/s</td>
   `;
   document.getElementById('results-tbody').appendChild(tr);
@@ -512,7 +602,7 @@ function animateShots(shots, onComplete) {
 const EXPORT_HEADERS = [
   'Batch', 'Config_ID', 'Replicate',
   'Pull_Angle_deg', 'Stop_Angle_deg', 'Bungee_Pos', 'Arm_Hole', 'Pin_Elevation',
-  'Distance_m', 'Model_Sigma_m', 'Release_Velocity_mps', 'Launch_Angle_deg'
+  'Distance_m', 'Predicted_Sigma_m', 'Release_Velocity_mps', 'Launch_Angle_deg'
 ];
 
 /** One export row per recorded shot - raw data, ready for Minitab or JMP. */
@@ -521,7 +611,7 @@ function exportRows() {
     s.batch, s.config.id, s.rep,
     s.config.pullBackAngle, s.config.stopAngle, s.config.bungeePosition,
     s.config.armHole, s.config.pinElevation,
-    s.distance.toFixed(3), s.launch.variation.toFixed(3),
+    s.distance.toFixed(3), s.sigma.toFixed(3),
     s.launch.releaseVelocity.toFixed(2), s.launch.launchAngleDeg.toFixed(2)
   ]);
 }

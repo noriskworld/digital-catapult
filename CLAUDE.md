@@ -13,20 +13,30 @@ npm run preview  # serve the built dist/
 npm test                                      # node:test, no framework to install
 node --test test/physics.test.mjs             # one file
 node --test --test-name-pattern="pivot"       # one test
+
+node doe/run-study.mjs                        # full sequential DOE study + answer key
+node doe/run-study.mjs --target=14 --write    # other target; --write refreshes course/data/
 ```
 
 There is no linter and no `vite.config.*` — Vite runs zero-config with `index.html` as the entry point and `/main.js` as the only module script.
 
 ## Architecture
 
-Vanilla ES modules, no framework, four source files with strictly separated roles:
+Vanilla ES modules, no framework. The simulator core:
 
-- [constants.js](constants.js) — geometry, masses, factor bounds, and the shared coordinate convention. **Every physical constant belongs here**; both the solver and the renderer import from it.
-- [physics.js](physics.js) — pure functions, no DOM: `calculateLaunch`, `trajectoryAt`, `apexHeight`, `randomNormal`. Covered by [test/physics.test.mjs](test/physics.test.mjs).
+- [constants.js](constants.js) — geometry, masses, noise magnitudes, factor bounds, and the shared coordinate convention. **Every physical constant belongs here**; the solver and the renderer both import from it.
+- [physics.js](physics.js) — pure, no DOM: `machineState`/`solveLaunch`/`calculateLaunch`, `simulateShot`, `predictSigma`, `trajectoryAt`, `apexHeight`, `makeRng`, `randomNormal`.
 - [animation.js](animation.js) — `CatapultRenderer`. Owns *all* metre→pixel conversion (`toPx`/`toPy`) and the auto-fit scale.
-- [main.js](main.js) — DOM wiring, batching and replication, the frame loop, CSV/TSV export.
+- [main.js](main.js) — DOM wiring, batching and replication, the frame loop, the design loader, CSV/TSV export.
 
-Data flow per batch: config rows → `readConfigs()` (clamps to `FACTOR_BOUNDS`) → `calculateLaunch()` once per config → `randomNormal(distance, variation)` once per replicate → result rows + `collectedShots` → `animateShots()` drives the renderer.
+And the DOE layer, which the course material depends on:
+
+- [doe/designs.js](doe/designs.js) — design generators (full/fractional factorial, alias structure, Box-Behnken, centre points, randomisation, coded↔actual).
+- [doe/analysis.js](doe/analysis.js) — OLS, ANOVA with exact *F* *p*-values, lack of fit, curvature test, target optimiser.
+- [doe/catapult-doe.js](doe/catapult-doe.js) — the catapult's factor windows and design execution. Browser-safe (no `node:` imports), which is what lets [main.js](main.js) share it.
+- [doe/run-study.mjs](doe/run-study.mjs) — CLI only; the one file that imports `node:fs`.
+
+Data flow per batch: config rows → `readConfigs()` (clamps to `FACTOR_BOUNDS`) → `calculateLaunch()` once per config for the drawn arc → `simulateShot()` once per replicate for the recorded distance → result rows + `collectedShots` → `animateShots()` drives the renderer.
 
 ### Coordinate convention
 
@@ -62,11 +72,30 @@ The ground ruler steps over **integer tick indices**, never an accumulating floa
 
 `calculateLaunch()` has three dud paths (pull-back doesn't clear the stop, no usable band energy, not travelling downrange). All route through `nullLaunch()`, which spreads caller-supplied fields over a complete zeroed result, so callers never see `undefined`. Check `.valid` and read `.reason` rather than testing `distance > 0`. A test asserts every dud path carries the full field set.
 
+### Noise is emergent, not assumed
+
+`simulateShot()` perturbs the *physical state* (band stiffness, stop angle, cup radius, pull-back, mass) and re-solves, then adds measurement error. The spread in distance therefore depends on the settings rather than following a formula. The key term is `NOISE.stopAngleVelocityCoupling`: release scatter grows with impact severity, so a flat fast shot is less repeatable than a lofted slow one that lands in the same place. **That coupling is the entire basis of the course's robust-optimisation lab** — remove it and the variation response collapses to a constant multiple of the mean.
+
+`predictSigma()` is a delta-method (first-order error propagation) estimate of that spread, deterministic and agreeing with Monte Carlo to within 0.3%. A test pins that agreement.
+
+### Seeded reproducibility is a contract
+
+`makeRng(seed)` drives shot noise, and the app **restarts the generator at the top of every batch** when a seed is present. Combined with loading designs in standard order, this makes the browser reproduce `course/data/*.csv` shot for shot — verified, and relied on by the workbook. Two things preserve it, both easy to break:
+
+- Every shot must consume the same number of draws. `simulateShot` is called even for a dud configuration (it returns zero itself) rather than being skipped.
+- `doe/run-study.mjs` and `runBatch()` must iterate configurations and replicates in the same nesting order.
+
+`optimiseToTarget` also defaults to a seeded generator for its multi-start, so a recommendation does not change between runs.
+
 ## Domain context
 
 A DOE / Six Sigma training tool: 5 input factors (X's) → responses (Y's). See [README.md](README.md) for the factor table, physics derivation, and suggested exercises; the in-app guide in [index.html](index.html) mirrors it and must be updated alongside.
 
-**`variation` is the model's injected noise, not a measurement.** It is a deterministic function of the inputs, so regressing on it just recovers the generating formula. A genuine variation response comes from firing replicates and taking the standard deviation of observed distances — which is why results accumulate across batches until *Clear Results* and export is one row per shot.
+**The UI's "Predicted σ" column is `predictSigma`, a model output, not a measurement.** A genuine variation response comes from firing replicates and taking the standard deviation of the observed distances — which is why results accumulate across batches until *Clear Results*, and why export is one row per shot.
+
+Two factor windows are in play and they are *different*: `FACTORS` (screening, Labs 1–2) and `RSM_FACTORS` (response surface, Labs 3–5), both in [doe/catapult-doe.js](doe/catapult-doe.js). `settingsFor()` holds any factor outside the active subset at its `FACTORS` centre. Mixing the two windows up silently produces wrong coded values.
+
+The course material in [course/](course/) quotes specific numbers from specific seeds. If you change the physics, the noise constants, the factor windows, or the shot-draw order, **regenerate it**: `node doe/run-study.mjs --write`, then update the answer key in [course/instructor-guide.md](course/instructor-guide.md).
 
 Factor bounds live only in `FACTOR_BOUNDS`; input attributes, the paste importer and `readConfigs()` all read from it. The table headers and guide text in [index.html](index.html) are the one place that still restates them by hand.
 

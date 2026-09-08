@@ -30,6 +30,38 @@ export const BAND_REST_LENGTH = 0.20; // m
 /** Aerodynamic loss coefficient: distance is divided by (1 + DRAG_FACTOR * v). */
 export const DRAG_FACTOR = 0.02;
 
+/**
+ * Random effects: the machine is never set up twice in exactly the same state.
+ * These are standard deviations on the *physical* quantities, applied per shot
+ * and then propagated through the solver, so the resulting spread in distance
+ * is an emergent property of the settings rather than an assumed formula.
+ * That is what makes "which factors drive variation?" a real question.
+ */
+export const NOISE = {
+  /** Band stiffness drifts with temperature, fatigue and how it was hooked on. */
+  springRateRelative: 0.020,
+  /** The arm does not rebound off the stop in exactly the same place. */
+  stopAngleDeg: 0.28,
+  /**
+   * ...and it stops less consistently the harder it arrives. Scatter in the
+   * release angle grows with impact severity, so the stop-angle standard
+   * deviation is multiplied by (1 + this * release velocity).
+   *
+   * This is what makes variation a genuinely separate response from the mean:
+   * a lofted, slower shot and a flat, fast one can travel the same distance
+   * while scattering by different amounts.
+   */
+  stopAngleVelocityCoupling: 0.055,
+  /** Play in the arm-hole peg and the cup seating. */
+  cupRadiusM: 0.004,
+  /** The operator cannot hold the pull-back angle perfectly. */
+  pullBackAngleDeg: 0.60,
+  /** Ball-to-ball mass differences. */
+  massRelative: 0.015,
+  /** Reading the tape measure at the landing point. */
+  measurementM: 0.040
+};
+
 /** Input factor bounds, shared by the UI, the paste importer and the solver. */
 export const FACTOR_BOUNDS = {
   pullBackAngle: { min: 90, max: 200, step: 1, default: 160 },

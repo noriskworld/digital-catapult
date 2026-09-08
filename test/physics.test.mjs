@@ -1,16 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { calculateLaunch, trajectoryAt, apexHeight, randomNormal } from '../physics.js';
-import { FACTOR_BOUNDS, cupRadius, springRate, effectiveStopAngle, clamp } from '../constants.js';
+import {
+  calculateLaunch, trajectoryAt, apexHeight, randomNormal,
+  simulateShot, predictSigma, makeRng, machineState, solveLaunch
+} from '../physics.js';
+import { FACTOR_BOUNDS, NOISE, cupRadius, springRate, effectiveStopAngle, clamp } from '../constants.js';
 
 const nominal = () => calculateLaunch(180, 105, 3, 3, 2);
 
 /** Every field a caller may read, dud launch or not. */
 const RESULT_FIELDS = [
-  'distance', 'variation', 'releaseVelocity', 'launchAngleDeg', 'flightTime',
+  'distance', 'releaseVelocity', 'launchAngleDeg', 'flightTime',
   'releaseX', 'releaseY', 'vx', 'vy', 'effectiveStopAngle', 'valid', 'reason'
 ];
+
+const FACTORS_AT = (pull, stop, bungee, arm, pin) => ({
+  pullBackAngle: pull, stopAngle: stop, bungeePosition: bungee, armHole: arm, pinElevation: pin
+});
 
 test('a nominal launch produces a sane, fully populated result', () => {
   const r = nominal();
@@ -107,6 +114,81 @@ test('every dud path returns the full result shape', () => {
   }
 });
 
+test('machineState and solveLaunch compose back into calculateLaunch', () => {
+  const direct = calculateLaunch(175, 104, 3.5, 2.5, 2);
+  const composed = solveLaunch(machineState(175, 104, 3.5, 2.5, 2));
+  assert.equal(direct.distance, composed.distance);
+  assert.equal(direct.releaseVelocity, composed.releaseVelocity);
+});
+
+test('a seeded generator reproduces a shot sequence exactly', () => {
+  const factors = FACTORS_AT(170, 105, 3, 3, 2);
+  const first = Array.from({ length: 25 }, ((r) => () => simulateShot(factors, r).distance)(makeRng(1234)));
+  const second = Array.from({ length: 25 }, ((r) => () => simulateShot(factors, r).distance)(makeRng(1234)));
+  assert.deepEqual(first, second);
+  // ...and a different seed does not.
+  const other = Array.from({ length: 25 }, ((r) => () => simulateShot(factors, r).distance)(makeRng(4321)));
+  assert.notDeepEqual(first, other);
+});
+
+test('simulated shots scatter around the nominal distance', () => {
+  const factors = FACTORS_AT(175, 105, 3, 3, 2);
+  const rng = makeRng(2024);
+  const nominal = calculateLaunch(175, 105, 3, 3, 2).distance;
+
+  const draws = Array.from({ length: 20000 }, () => simulateShot(factors, rng).distance);
+  const mean = draws.reduce((a, b) => a + b, 0) / draws.length;
+  const sd = Math.sqrt(draws.reduce((s, d) => s + (d - mean) ** 2, 0) / (draws.length - 1));
+
+  assert.ok(Math.abs(mean - nominal) < 0.05, `mean ${mean} drifted from nominal ${nominal}`);
+  assert.ok(sd > 0.01, 'shots showed no scatter at all');
+});
+
+test('predictSigma agrees with a Monte Carlo estimate across the space', () => {
+  const cases = [
+    FACTORS_AT(150, 100, 2, 3, 2),
+    FACTORS_AT(185, 108, 2, 3, 2),
+    FACTORS_AT(170, 97, 4, 4, 2),
+    FACTORS_AT(190, 110, 4.5, 2, 3)
+  ];
+  for (const factors of cases) {
+    const rng = makeRng(31337);
+    const draws = Array.from({ length: 30000 }, () => simulateShot(factors, rng).distance);
+    const mean = draws.reduce((a, b) => a + b, 0) / draws.length;
+    const sd = Math.sqrt(draws.reduce((s, d) => s + (d - mean) ** 2, 0) / (draws.length - 1));
+    const predicted = predictSigma(factors);
+    const relativeError = Math.abs(predicted - sd) / sd;
+    assert.ok(relativeError < 0.05, `delta method off by ${(100 * relativeError).toFixed(1)}%`);
+  }
+});
+
+test('scatter grows with impact severity, not just with distance', () => {
+  // Two settings that travel a similar distance: one lofted and slow, one flat
+  // and fast. The flat one must be the less repeatable of the pair.
+  const lofted = FACTORS_AT(183, 111.7, 1.5, 3, 2.25);
+  const flat = FACTORS_AT(190, 95.3, 4.5, 3, 2.25);
+  const dLofted = calculateLaunch(183, 111.7, 1.5, 3, 2.25);
+  const dFlat = calculateLaunch(190, 95.3, 4.5, 3, 2.25);
+
+  assert.ok(Math.abs(dLofted.distance - dFlat.distance) < 0.5, 'the two settings should travel alike');
+  assert.ok(dFlat.releaseVelocity > dLofted.releaseVelocity, 'the flat shot should be the faster one');
+  assert.ok(predictSigma(flat) > predictSigma(lofted) * 1.2,
+    'the harder-arriving shot should scatter noticeably more');
+});
+
+test('a dud configuration reports zero rather than noise', () => {
+  const rng = makeRng(5);
+  const dud = FACTORS_AT(95, 118, 3, 3, 4);
+  for (let i = 0; i < 50; i++) assert.equal(simulateShot(dud, rng).distance, 0);
+  assert.equal(predictSigma(dud), 0);
+});
+
+test('every noise source is a positive, small perturbation', () => {
+  for (const [name, value] of Object.entries(NOISE)) {
+    assert.ok(Number.isFinite(value) && value > 0, `${name} must be a positive number`);
+  }
+});
+
 test('the whole factor space stays finite and non-negative', () => {
   const b = FACTOR_BOUNDS;
   let checked = 0;
@@ -117,8 +199,8 @@ test('the whole factor space stays finite and non-negative', () => {
           for (let pin = 1; pin <= 5; pin++) {
             const r = calculateLaunch(pull, stop, bungee, arm, pin);
             assert.ok(Number.isFinite(r.distance) && r.distance >= 0);
-            assert.ok(Number.isFinite(r.variation) && r.variation >= 0);
             assert.ok(Number.isFinite(r.flightTime) && r.flightTime >= 0);
+            assert.ok(Number.isFinite(predictSigma(FACTORS_AT(pull, stop, bungee, arm, pin))));
             checked++;
           }
   assert.ok(checked > 1000, `only ${checked} combinations exercised`);
