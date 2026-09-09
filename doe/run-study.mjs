@@ -1,13 +1,16 @@
 /**
  * Runs the complete sequential DOE study end to end and prints the answer key.
  *
- *   node doe/run-study.mjs [--target=10] [--seed=...] [--write]
+ *   node doe/run-study.mjs [--target=10] [--noise=1] [--write]
  *
  * Phase 1  2^(5-2) resolution III screening      - which factors are worth keeping?
  * Phase 2  2^(5-1) resolution V + centre points  - de-alias, find interactions, test curvature
  * Phase 3  Box-Behnken response surface          - fit a quadratic and optimise to target
  *
- * `--write` also drops the student data sets into course/data/ as CSV.
+ * `--noise` multiplies every random effect: 0 is a perfectly repeatable
+ * machine, 1 the default, 3 a badly behaved one. Raising it is the quickest way
+ * to show a class that a design which worked yesterday no longer detects
+ * anything. `--write` also drops the student data sets into course/data/ as CSV.
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -27,7 +30,17 @@ const args = Object.fromEntries(
   })
 );
 const TARGET = Number(args.target ?? 10);
+const NOISE_SCALE = Number(args.noise ?? 1);
 const WRITE = Boolean(args.write);
+
+if (!Number.isFinite(NOISE_SCALE) || NOISE_SCALE < 0) {
+  console.error('--noise must be a number >= 0');
+  process.exit(1);
+}
+if (NOISE_SCALE !== 1) {
+  console.log(`\nNoise scale ${NOISE_SCALE}x - every random effect is multiplied by this.`);
+  console.log('Numbers below will not match the course answer key, which assumes 1x.');
+}
 
 const pad = (s, n) => String(s).padEnd(n);
 const num = (v, d = 3, n = 9) => Number(v).toFixed(d).padStart(n);
@@ -67,7 +80,7 @@ console.log(`Generators: ${p1Generators.join(', ')}`);
 console.log(`Defining relation: I = ${p1Alias.words.join(' = ')}`);
 console.log(`Resolution ${p1Alias.resolution} - main effects are aliased with two-factor interactions.\n`);
 
-const p1 = runDesign(p1Design, { replicates: 3, seed: 1001 });
+const p1 = runDesign(p1Design, { replicates: 3, seed: 1001, noiseScale: NOISE_SCALE });
 const p1Shots = shotLevel(p1);
 const p1Fit = fit(p1Shots.design, p1Shots.response, 'main');
 effectsTable(p1Fit, { aliases: p1Alias.aliases });
@@ -93,7 +106,7 @@ console.log(`Defining relation: I = ${p2Alias.words.join(' = ')}   (resolution $
 console.log('Main effects are now clear of two-factor interactions, and each two-factor');
 console.log('interaction is aliased only with a three-factor interaction.\n');
 
-const p2 = runDesign(p2Design, { replicates: 3, seed: 2002 });
+const p2 = runDesign(p2Design, { replicates: 3, seed: 2002, noiseScale: NOISE_SCALE });
 const p2Shots = shotLevel(p2);
 
 // Interactions are estimated from the factorial portion; the centre runs carry
@@ -132,7 +145,7 @@ for (const f of RSM_FACTORS) console.log(`  ${f.letter} = ${pad(f.name, 16)} ${f
 console.log('  D = Arm hole held at 3.0,  E = Pin elevation held at 2.25\n');
 
 const p3Design = boxBehnken(3);
-const p3 = runDesign(p3Design, { factors: RSM_FACTORS, replicates: 15, seed: 3003 });
+const p3 = runDesign(p3Design, { factors: RSM_FACTORS, replicates: 15, seed: 3003, noiseScale: NOISE_SCALE });
 const p3Shots = shotLevel(p3);
 
 console.log(`${p3Design.length} design points (12 edge + 3 centre), ${p3Shots.response.length} shots total.\n`);
@@ -143,16 +156,34 @@ effectsTable(meanFit);
 
 const p3Lof = lackOfFit(p3Shots.design, p3Shots.response, meanFit);
 if (p3Lof) {
-  console.log(`\nLack of fit: F = ${p3Lof.fStatistic.toFixed(2)} on ${p3Lof.lackOfFitDf} and ` +
-              `${p3Lof.pureErrorDf} df,  p = ${p3Lof.pValue.toExponential(3)}`);
-  console.log(`  => ${p3Lof.pValue < 0.05
-    ? 'Significant lack of fit - the quadratic form is missing something.'
-    : 'No significant lack of fit - the quadratic model is adequate.'}`);
+  // With no noise, pure error is zero and the F ratio blows up: any departure
+  // from the model at all is infinitely significant. Report the degeneracy
+  // rather than dressing it up as a finding.
+  const degenerate = p3Lof.pureErrorSS < 1e-12;
+  console.log(`\nLack of fit: F = ${degenerate ? 'infinite' : p3Lof.fStatistic.toFixed(2)} on ` +
+              `${p3Lof.lackOfFitDf} and ${p3Lof.pureErrorDf} df,  p = ${p3Lof.pValue.toExponential(3)}`);
+  if (degenerate) {
+    console.log('  => Pure error is exactly zero, so the test has no scale to judge against');
+    console.log('     and any departure at all looks infinitely significant. A lack-of-fit');
+    console.log('     test is meaningless on a noiseless process.');
+  } else {
+    console.log(`  => ${p3Lof.pValue < 0.05
+      ? 'Significant lack of fit - the quadratic form is missing something.'
+      : 'No significant lack of fit - the quadratic model is adequate.'}`);
+  }
 }
 
 // Second response: the within-run standard deviation. A spread is modelled on
 // the log scale - it is bounded below by zero, and its effects act
 // multiplicatively, both of which a log transform fixes.
+if (NOISE_SCALE === 0) {
+  console.log('\n\nNoise scale is 0: every shot is identical, so every within-run standard');
+  console.log('deviation is exactly zero and there is no variation response to model.');
+  console.log('That is the lesson - with a perfectly repeatable process, replication');
+  console.log('buys nothing and robustness is not a question you can even ask.');
+  process.exit(0);
+}
+
 const logSpreadFit = fit(p3Design, p3.spreads.map(Math.log), 'interaction');
 console.log('\n\nModel for ln(WITHIN-RUN STANDARD DEVIATION), n = 15 shots per run');
 effectsTable(logSpreadFit);
@@ -184,8 +215,8 @@ const fragile = optimiseToTarget({
 
 function report(label, solution) {
   const settings = settingsFor(solution.point, RSM_FACTORS);
-  const check = confirm(settings, 600);
-  const nominal = predictSigma(settings);
+  const check = confirm(settings, 600, 99991, NOISE_SCALE);
+  const nominal = predictSigma(settings, NOISE_SCALE);
   console.log(`\n${label}`);
   rule();
   console.log(`  coded          : A = ${solution.point[0].toFixed(3)}, B = ${solution.point[1].toFixed(3)}, C = ${solution.point[2].toFixed(3)}`);
@@ -223,7 +254,7 @@ if (WRITE) {
     'phase1-screening-2^(5-2).csv': toCsv(p1.runs, FACTORS),
     'phase2-resolutionV-2^(5-1).csv': toCsv(p2.runs, FACTORS),
     'phase3-box-behnken.csv': toCsv(p3.runs, RSM_FACTORS),
-    'full-factorial-2^5.csv': toCsv(runDesign(fullFactorial2(5), { replicates: 3, seed: 4004 }).runs, FACTORS)
+    'full-factorial-2^5.csv': toCsv(runDesign(fullFactorial2(5), { replicates: 3, seed: 4004, noiseScale: NOISE_SCALE }).runs, FACTORS)
   };
   for (const [name, content] of Object.entries(files)) {
     writeFileSync(`course/data/${name}`, content + '\n');

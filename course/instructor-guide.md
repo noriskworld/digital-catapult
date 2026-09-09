@@ -17,10 +17,12 @@ Experiments course built on the Digital Catapult simulator.
 | 3 | Response surface, target setting | Box-Behnken (3 factors), 15 reps | 225 | 90 min |
 | 4 | Robust settings, variation response | (same data) | 0 | 60 min |
 | 5 | Confirmation and reporting | 2 settings × 30 | 60 | 30 min |
-| | | | **409** | **~5.75 h** |
+| 6 | Noise, power and replication | Re-runs at varied noise | ~900 | 60 min |
+| | | | **~1300** | **~6.75 h** |
 
 Runs comfortably as a one-day workshop or four 90-minute sessions. Labs 3 and 4
-share one data set — collect it once.
+share one data set — collect it once. Lab 6 is self-contained and can be taught
+on its own, or dropped if time is short — though it is the lab students remember.
 
 **Prerequisites.** Descriptive statistics, the normal distribution, and reading
 an ANOVA table. Regression is helpful but is re-taught in context. No calculus.
@@ -52,9 +54,11 @@ with `npm run build:standalone`.
 
 ```bash
 npm install
-node doe/run-study.mjs --write      # prints the full study, rewrites course/data/
-node doe/run-study.mjs --target=14  # any other target distance
-npm test                            # 23 physics tests
+node doe/run-study.mjs --write       # prints the full study, rewrites course/data/
+node doe/run-study.mjs --target=14   # any other target distance
+node doe/run-study.mjs --noise=3     # the same study on a badly behaved machine
+npm run power                        # power tables for Lab 6
+npm test                             # 55 tests across physics and the DOE toolkit
 ```
 
 **A caution worth passing on.** If a student edits the configuration table by
@@ -87,9 +91,20 @@ distance — one lofted and slow, one flat and fast — and the fast one scatter
 noticeably more. Nothing in the students' data reveals this directly; they must
 infer it from the fitted variation model. Hold it back until the Lab 4 debrief.
 
-`physics.js` exposes `predictSigma(factors)`, a delta-method estimate of the
-true σ at any settings, agreeing with Monte Carlo to within 0.3%. Use it to
-check student answers instantly.
+**The noise scale.** The *Noise* control multiplies every magnitude in that
+table by the chosen factor before each shot. It does **not** scale
+`stopAngleVelocityCoupling`, which sets the *shape* of the variance structure
+rather than its size — so the lofted-versus-flat robustness lesson holds at
+every noise level. Verified: σ scales exactly linearly, and the delta method
+tracks Monte Carlo to within 0.3% at 0.25x through 5x.
+
+The physics itself never changes. A factor that is real at `1x` is equally real
+at `5x`; only the scatter around it grows. Every conclusion in Labs 0–5 assumes
+`1x`, and the answer key below is invalid at any other setting.
+
+`physics.js` exposes `predictSigma(factors, noiseScale)`, a delta-method estimate
+of the true σ at any settings, agreeing with Monte Carlo to within 0.3%. Use it
+to check student answers instantly.
 
 ---
 
@@ -143,18 +158,18 @@ effects are aliased with two-factor interactions.
 
 | Effect | Estimate | *p* | % contribution | Rank |
 |---|---|---|---|---|
-| A | 8.091 | 1.4e-16 | 55.0 | 1 |
-| D | 5.181 | 3.3e-13 | 22.6 | 2 |
-| B | 4.002 | 2.6e-11 | 13.5 | 3 |
-| C | 2.516 | 4.1e-8 | 5.3 | 4 |
-| E | 1.723 | 7.7e-6 | 2.5 | 5 |
+| A | 8.064 | 1.8 × 10⁻¹⁶ | 54.8 | 1 |
+| D | 5.187 | 4.0 × 10⁻¹³ | 22.7 | 2 |
+| B | 4.007 | 3.1 × 10⁻¹¹ | 13.5 | 3 |
+| C | 2.503 | 5.3 × 10⁻⁸ | 5.3 | 4 |
+| E | 1.709 | 9.8 × 10⁻⁶ | 2.5 | 5 |
 
-R² = 0.9883.
+R² = 0.9880.
 
 **Q1.4** A dominates; E is the clear drop candidate at 2.5%.
 
 **Q1.5** The apparent D effect is inseparable from AB. In Lab 2 it turns out
-that AB is genuinely large (9.2%), so part of what looked like "D" here was the
+that AB is genuinely large (9.1%), so part of what looked like "D" here was the
 AB interaction. Students who spot this before seeing Lab 2 deserve credit.
 
 **Q1.6** Replication estimates *pure error* — repeat shots at identical settings
@@ -174,26 +189,26 @@ effects from two-factor interactions — the thing Lab 1 could not do.
 
 | Term | Effect | % contribution |
 |---|---|---|
-| A | 7.533 | 65.28 |
-| **AB** | **2.823** | **9.17** |
-| B | 2.735 | 8.61 |
-| D | 2.302 | 6.10 |
-| C | 2.191 | 5.52 |
-| AC | 1.162 | 1.55 |
-| AD | 1.104 | 1.40 |
-| BC, BD, CE, DE, AE | 0.5–0.65 | 0.29–0.48 |
-| E | 0.432 | 0.21 |
-| CD | 0.324 | 0.12 |
-| BE | −0.027 | 0.00 (*p* = 0.61) |
+| A | 7.566 | 65.28 |
+| **AB** | **2.821** | **9.07** |
+| B | 2.731 | 8.51 |
+| D | 2.307 | 6.07 |
+| C | 2.219 | 5.62 |
+| AC | 1.189 | 1.61 |
+| AD | 1.106 | 1.39 |
+| BC, BD, CE, DE, AE | 0.51–0.64 | 0.29–0.47 |
+| E | 0.439 | 0.22 |
+| CD | 0.326 | 0.12 |
+| BE | −0.026 | 0.00 (*p* = 0.67) |
 
-R² = 0.9990.
+R² = 0.9987.
 
 **Q2.3** AB — an *interaction* is the second-largest term in the model. Students
 who ran only main effects would have missed it entirely.
 
-**Q2.4** D fell from 5.181 to 2.302. In Lab 1, D was aliased with AB, so its
-estimate was inflated by roughly half the AB effect. Checking: 2.302 + 2.823/2 ≈
-3.7 — the right direction, and the residual gap is because the two designs use
+**Q2.4** D fell from 5.187 to 2.307. In Lab 1, D was aliased with AB, so its
+estimate was inflated by roughly half the AB effect. Checking: 2.307 + 2.821/2 ≈
+3.72 — the right direction, and the residual gap is because the two designs use
 different runs. Full marks for identifying the alias as the cause.
 
 **Q2.5** With 48 shots even a 0.12% term reaches significance. Practical
@@ -210,11 +225,11 @@ students who describe the interaction *physically* rather than just naming it.
 
 | | Value |
 |---|---|
-| Mean of 16 factorial runs | 7.428 m |
-| Mean of 4 centre runs | 8.175 m |
-| Difference | −0.748 m |
-| *F* (1, 3) | 141.35 |
-| *p* | 1.3 × 10⁻⁷ |
+| Mean of 16 factorial runs | 7.445 m |
+| Mean of 4 centre runs | 8.169 m |
+| Difference | −0.724 m |
+| *F* (1, 3) | 133.83 |
+| *p* | 1.7 × 10⁻⁷ |
 
 Highly significant. The centre sits *above* the corner average, so the surface
 is domed — a two-level model would systematically under-predict the middle.
@@ -223,8 +238,9 @@ is domed — a two-level model would systematically under-predict the middle.
 metre. Aiming at 10 m with it would land you consistently off target. R² is
 computed only at the points you visited and says nothing about the middle.
 
-**Q2.9** Carry A, B, C; drop E (0.21%); fix D at its centre. Accept dropping C
-instead of D if argued from the numbers — they are within 0.6% of each other.
+**Q2.9** Carry A, B, C; drop E (0.22%); fix D at its centre. Accept dropping C
+instead of D if argued from the numbers — their contributions differ by under
+half a percentage point.
 Reward students who note that D and C are nearly tied and that fixing one is a
 judgement call, not a result.
 
@@ -360,6 +376,140 @@ that size is expected, not evidence of a bad model.
   DOE found the best settings *for this machine*, and further gains require
   changing the machine, not the settings.
 
+### Lab 6 — Noise and power
+
+This lab exists because power is the concept students most reliably fail to
+absorb from a lecture. Here they run into it.
+
+**6.1 — one seed, four noise levels** (resolution V, 16 × 2, seed 6001, main
+effects + two-factor interactions):
+
+| Noise | Typical *s* | E effect | *p* for E | C effect | *p* for C |
+|---|---|---|---|---|---|
+| 0.5x | 0.064 | 0.470 | 2.8 × 10⁻¹¹ | 2.039 | 2.8 × 10⁻²¹ |
+| 1x | 0.127 | 0.489 | 3.2 × 10⁻⁷ | 1.960 | 3.1 × 10⁻¹⁶ |
+| 3x | 0.385 | 0.568 | 5.1 × 10⁻³ | 1.640 | 6.6 × 10⁻⁸ |
+| 5x | 0.648 | 0.651 | 4.0 × 10⁻² | 1.315 | 3.5 × 10⁻⁴ |
+
+**Q6.1** The *estimate* wanders between 0.47 and 0.65 — it is unbiased, just
+imprecise. The *p*-value moves by nine orders of magnitude. Effect size is a
+property of the process; the *p*-value is a property of the process **and** the
+experiment. Students who say "the effect got bigger" have misread the table:
+the estimate drifting upward here is noise, not signal.
+
+**Q6.2** A *p*-value is a statement about the **evidence**, not about the
+effect. It answers "could sampling noise alone have produced a result this
+large?", and that depends entirely on how much noise there is and how many
+observations you bought.
+
+**Q6.3** C's true effect is about 2.1 m against E's 0.37 m — nearly six times
+larger. Signal-to-noise scales with effect size, so C survives noise that
+buries E. This is the intuition behind every power calculation.
+
+> **Note this seed detects E at every level, including 5x.** That is
+> deliberate. Students who conclude "so a 32-shot design is fine at 5x noise"
+> have made exactly the error 6.2 is designed to catch, and the transition
+> lands much harder for having let them make it.
+
+**6.2 — power by repetition** (3x noise, seeds 6101–6108):
+
+| Strategy | Shots | Detected | Empirical power |
+|---|---|---|---|
+| 16 runs × 2 replicates | 32 | 4 / 8 | ~50% |
+| 16 runs × 6 replicates | 96 | 8 / 8 | ~100% |
+| 32 runs (full 2⁵) × 2 | 64 | 3 / 8 | ~38% |
+
+At 5x noise the same three come out 3/8, 5/8 and 1/8.
+
+**Q6.4** Almost none. A single experiment at 3x noise is a coin toss for E; the
+answer they wrote down in 6.1 was one draw from that distribution. Reward
+students who connect this to the reproducibility of published findings.
+
+**Q6.5** Replication fixed it. The full factorial used twice the shots of the
+32-shot design and did *not*.
+
+**Q6.6** The key question in the lab. In the full factorial, every three-, four-
+and five-factor interaction is unmodelled and lands in the residual; at 3x noise
+the residual SD runs about 1.55× the measured within-run SD, against about 1.28×
+for the half-fraction, which absorbs those higher-order terms into its
+two-factor estimates instead. The larger *n* is spent paying for the inflated
+error term rather than buying precision.
+
+**Q6.7** *Runs buy resolution; replicates buy power.* Runs let you separate
+effects from each other. Replicates let you separate effects from noise. Only
+the second is what fails when the machine gets noisy, so only the second fixes
+it. Accept any wording that keeps those two jobs distinct.
+
+**6.3 — zero noise.** Every within-run standard deviation is zero (to floating
+point: about 10⁻¹⁵). Pure error is therefore zero, every *F* ratio is infinite
+and every *p*-value is 0.
+
+**Q6.8 / Q6.9** With no pure error the *F* test has no yardstick, so every
+departure however trivial is "infinitely significant". The curvature test
+returns *p* = 0 and means nothing. Significance testing is a comparison of
+signal against noise; with no noise there is nothing to compare against.
+
+**Q6.10** One replicate, and DOE would collapse to solving simultaneous
+equations — a purely deterministic exercise. Every statistical tool in this
+course exists because of variation. Worth stating explicitly: **statistics is
+not the point of DOE; variation is. Statistics is just how you cope with it.**
+
+**6.4 — the trap** (resolution III, 8 × 2, 3x noise, seed 6004): the E effect
+comes out **1.586 m** with *p* = 4.1 × 10⁻³ — comfortably significant, on half
+the shots of the design that struggled.
+
+**Q6.11 / Q6.12** E's true effect is 0.37 m. In this design E is aliased with
+AC, which is genuinely large, so the column estimates E + AC and is inflated
+more than fourfold. The design looks powerful because it is measuring the wrong
+quantity with confidence. **More power for a biased estimate is worse than less
+power for an unbiased one**, because it removes the one signal — a wide
+confidence interval — that might have made you cautious.
+
+**Q6.13** Something like: *cutting the experiment in half does not halve what
+you learn — it decides which questions you are no longer allowed to ask, and
+the design will not warn you.* Grade on whether they distinguish precision from
+bias.
+
+### Running the power study yourself
+
+```bash
+npm run power                          # ~500 trials, all designs, five noise levels
+node doe/power-study.mjs --trials=50   # quick version for a live demo
+```
+
+It repeats each experiment many times over and reports how often each factor is
+found. Projecting this table while students are arguing about a single
+*p*-value is the fastest way to end the argument. The full output at 500 trials:
+
+```
+2^(5-1) res V   16 runs x 2 shots = 32 shots per experiment
+  noise |    A    B    C    D    E
+   0.5x |  100  100  100  100  100
+     1x |  100  100  100  100  100
+     2x |  100  100  100  100   77
+     3x |  100  100  100  100   48
+     5x |  100  100  100  100   22
+
+2^(5-1) res V   16 runs x 6 shots = 96 shots per experiment
+   0.5x |  100  100  100  100  100
+     1x |  100  100  100  100  100
+     2x |  100  100  100  100  100
+     3x |  100  100  100  100   90
+     5x |  100  100  100  100   50
+```
+
+A, B, C and D are never in doubt. E is the entire lesson.
+
+### Teaching the noise control elsewhere
+
+- **Before Lab 1.** Run one configuration at `0x` and at `3x`, ten shots each.
+  Thirty seconds, and it establishes what "process variation" means physically
+  before any statistics are attempted.
+- **During Lab 2.** Ask half the room to run the curvature test at `1x` and half
+  at `5x`. They will reach different conclusions from the same true curvature.
+- **As an exam question.** Give a *p*-value and ask what else you would need to
+  know before acting on it. The answer is the noise level and the design.
+
 ---
 
 ## 5. The replication economics table
@@ -405,6 +555,16 @@ looks impressive.** That distinction is worth drawing out.
    setting it has never seen.
 9. **Mixing up the two factor windows.** Labs 1–2 and Labs 3–5 use different
    low/high values for A, B and C. Appendix A of the workbook has both.
+10. **Leaving the noise control off 1x during Labs 0–5.** Every number in the
+    answer key assumes the default. If a student's results are uniformly wider
+    or narrower than expected, check this first — it is the single most likely
+    cause of a mismatch.
+11. **Treating noise as a sixth factor.** It is a property of the machine, not
+    something you set to optimise the process. Students who put it in the design
+    matrix have misunderstood what a factor is.
+12. **Concluding a factor is absent because *p* > 0.05.** Failing to detect is
+    not the same as demonstrating absence. Lab 6 exists to make this concrete;
+    look for it resurfacing in the final report.
 
 ---
 
@@ -421,6 +581,13 @@ looks impressive.** That distinction is worth drawing out.
 | Variation modelled and used to choose among on-target settings | 10% |
 | Confirmation run performed and honestly reported | 10% |
 
+If Lab 6 is taught, reweight to make room for:
+
+| Criterion | Weight |
+|---|---|
+| Distinguishes effect size from *p*-value | 5% |
+| Recognises that a non-significant factor may still be real | 5% |
+
 Award full marks in the last row for a student whose confirmation *missed* and
 who diagnosed why. Deduct from any report whose confirmation matches the
 prediction suspiciously exactly.
@@ -435,8 +602,15 @@ prediction suspiciously exactly.
   32 runs × 3 shots. Have half the class analyse the full factorial and half the
   16-run half-fraction, then compare conclusions against cost. They will agree —
   which is the argument for fractionation, made empirically.
-- **Noise as a factor.** Set the seed field to different values and treat it as
-  a block. Good for teaching blocking and randomisation.
+- **Blocking.** Set the seed field to different values and treat each as a
+  block. Good for teaching blocking and randomisation.
+- **A noise budget game.** Tell teams the maintenance department can halve the
+  machine noise for the price of 40 extra shots. Should they buy it? The answer
+  depends on which factor they are chasing, and working that out is the whole
+  skill.
+- **Sample-size planning done properly.** Have students use the power study to
+  choose a replicate count *before* collecting data, then hold them to it. This
+  is the professional version of Lab 6 and the one their employers care about.
 - **Sequential budget game.** Give teams 150 shots total and let them choose how
   to spend it across screening, RSM and confirmation. Score on confirmed
   distance-to-target and on σ. This is the best single exercise in the set.
@@ -455,7 +629,8 @@ prediction suspiciously exactly.
 | `doe/designs.js` | Design generators: full and fractional factorials, alias structure, Box-Behnken, centre points, randomisation, coding |
 | `doe/analysis.js` | OLS fitting, ANOVA with exact *F* *p*-values, lack of fit, curvature test, target optimiser |
 | `doe/catapult-doe.js` | Factor definitions, both windows, design execution, confirmation runs, CSV export |
-| `doe/run-study.mjs` | Runs all three phases and prints this answer key |
+| `doe/run-study.mjs` | Runs all three phases and prints this answer key (`--noise=` to change the machine, `--target=` the goal) |
+| `doe/power-study.mjs` | Repeats each design many times and reports detection rates (`npm run power`) |
 
 The *F*-distribution routine in `analysis.js` was verified against numerical
 integration of the *F* density to about 1 part in 10¹³, and the design

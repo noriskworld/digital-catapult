@@ -65,6 +65,8 @@ $$x(t) = x_{\text{cup}} + v_x t, \qquad y(t) = y_{\text{cup}} + (v_0 \sin\alpha)
 ### 4. Random Effects
 The machine is never set up twice in exactly the same state. Every shot perturbs the *physical* quantities — band stiffness ($2\%$), stop-angle rebound, cup radius ($4\text{ mm}$), operator pull-back error ($0.6^\circ$), ball mass ($1.5\%$) — and re-solves the mechanics, before adding tape-measure error ($4\text{ cm}$). Scatter in distance is therefore *emergent*: it depends on the settings rather than following an assumed formula.
 
+All of these magnitudes are multiplied by the **noise scale**, so the whole experiment's signal-to-noise ratio can be dialled from $0\times$ to $5\times$ without touching the physics.
+
 Crucially, the release-angle scatter is multiplied by $(1 + 0.055\,v_0)$: the arm rebounds off the stop less repeatably the harder it arrives. A flat, fast shot and a lofted, slow one can travel the same distance while scattering by different amounts — which is what makes minimising variation a genuinely separate problem from hitting a target.
 
 ### 5. Aerodynamic Loss
@@ -77,6 +79,7 @@ A lumped drag term is applied to the horizontal component, $v_x = v_0\cos\alpha 
 - **Live Ballistic Visualizer:** HTML5 Canvas rendering of the frame, swinging arm, stretching band, a graduated ground ruler, and projectile arcs sampled directly from the solved kinematics — the animation is the physics, not a decorative approximation.
 - **Auto-Scaling Arena:** The view fits itself to the longest shot and the highest arc in a batch, so results stay on screen from a 1 m dribble to a 30 m throw.
 - **Replicates and seeding:** Fire 1–30 shots per configuration in a single batch. Results accumulate across batches until cleared. Set a seed to make a whole data set reproducible; leave it blank for fresh randomness.
+- **Tunable noise:** A single control scales every random effect from `0x` (perfectly repeatable) to `5x` (barely usable). The physics is unchanged — only the scatter around it — so a design that comfortably detected a factor at `1x` will start missing it at `3x`. This turns statistical power into something a class can watch happen.
 - **Built-in DOE designs:** Load a full factorial, a fractional factorial (resolution III or V), centre points, or a Box-Behnken response surface directly into the run table.
 - **Simultaneous Multi-Run Animation:** Run every configuration at once with unique tracer colors and stacked, numbered landing flags.
 - **Excel / Google Sheets Copy-Paste:** Copy any 5-column trial table directly from a spreadsheet and paste into the configuration panel.
@@ -136,12 +139,15 @@ The repository ships a complete DOE teaching package built on the simulator:
 
 - **[course/student-workbook.md](course/student-workbook.md)** — five labs taking students from a 5-factor screening design to robust settings that hit a target distance.
 - **[course/instructor-guide.md](course/instructor-guide.md)** — full answer key, ground truth on the noise model, timings, common errors and a marking rubric.
+- **Lab 6 on power** — students raise the noise until a real factor stops being detectable, then buy it back with replication. `npm run power` produces the supporting tables.
 - **[course/data/](course/data/)** — pre-generated data sets for every design.
 
 ```bash
 node doe/run-study.mjs             # run the whole study and print the answer key
 node doe/run-study.mjs --target=14 # optimise to a different target distance
+node doe/run-study.mjs --noise=3   # the same study on a badly behaved machine
 node doe/run-study.mjs --write     # also regenerate course/data/
+npm run power                      # how often does each design detect each factor?
 ```
 
 The study runs three designs in sequence — a 2^(5-2) resolution III screen, a 2^(5-1) resolution V de-aliasing design with centre points, and a Box-Behnken response surface — then fits a quadratic model, solves it for a target distance, and confirms the answer against the simulator. Designs can also be loaded straight into the app from the *Load DOE design* menu, and the *Seed* field makes any data set reproducible.

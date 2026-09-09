@@ -212,5 +212,6 @@ together.
 | Page opens as text, or downloads instead of running | Served with the wrong content type, or previewed inside a web app | Save it to disk and open it from there |
 | Nothing happens on *Run* | Very old browser | Use Chrome, Edge, Firefox or Safari |
 | *Copy to Clipboard* reports it was blocked | Managed browser policy denies clipboard access | Use *Export CSV* — same data, as a file |
-| Numbers differ from the workbook | Seed empty, or rows entered in a different order | Use *Load DOE design*, and set the seed the lab specifies |
+| Numbers differ from the workbook | Seed empty, rows entered in a different order, or the *Noise* control moved off `1x` | Use *Load DOE design*, set the seed the lab specifies, and check Noise is `1x — Normal` |
+| Every replicate is identical | *Noise* is set to `0x` | Set it back to `1x` unless you are doing Lab 6 |
 | Canvas is blurry | Browser zoom set to a fractional level | Reset zoom to 100% |

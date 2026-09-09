@@ -62,6 +62,33 @@ export const NOISE = {
   measurementM: 0.040
 };
 
+/**
+ * How hard the machine is shaking today.
+ *
+ * Every magnitude in NOISE is multiplied by this before a shot is fired, so the
+ * signal-to-noise ratio of the whole experiment can be dialled up and down
+ * without changing the underlying physics. `stopAngleVelocityCoupling` is
+ * deliberately *not* scaled: it describes the shape of the variance structure
+ * rather than its size, and keeping it fixed means the robust-settings lesson
+ * survives at every noise level.
+ *
+ * A design that comfortably detects a factor at NORMAL will miss it at HIGH.
+ * That is the point: it lets a class discover statistical power by running into
+ * it, rather than being told about it.
+ */
+export const NOISE_PRESETS = [
+  { value: 0, label: 'None - deterministic', note: 'Every shot identical. Replication buys nothing.' },
+  { value: 0.25, label: 'Very low', note: 'Almost everything is detectable, even trivia.' },
+  { value: 0.5, label: 'Low', note: 'A forgiving process.' },
+  { value: 1, label: 'Normal (default)', note: 'The machine as specified.' },
+  { value: 2, label: 'High', note: 'Small effects start to disappear into the noise.' },
+  { value: 3, label: 'Very high', note: 'Only the big effects survive a small design.' },
+  { value: 5, label: 'Extreme', note: 'Demands heavy replication to conclude anything.' }
+];
+
+/** Noise multiplier used when none is given. */
+export const DEFAULT_NOISE_SCALE = 1;
+
 /** Input factor bounds, shared by the UI, the paste importer and the solver. */
 export const FACTOR_BOUNDS = {
   pullBackAngle: { min: 90, max: 200, step: 1, default: 160 },

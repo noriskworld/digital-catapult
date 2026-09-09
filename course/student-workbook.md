@@ -25,12 +25,17 @@ is the point of the whole course.
 ### Reproducibility
 
 Every lab specifies a **seed**. Enter it in the *Seed* box before firing. With
-the same design, the same replicate count and the same seed, you will get
-exactly the data in `course/data/` — so your numbers will match this workbook,
-your classmates', and the instructor's answer key.
+the same design, the same replicate count, the same seed **and the noise level
+set to `1x — Normal`**, you will get exactly the data in `course/data/` — so
+your numbers will match this workbook, your classmates', and the instructor's
+answer key.
 
 Leave the seed blank for genuinely fresh random data. Your conclusions should
 survive that; your third decimal place will not.
+
+> **Leave the *Noise* control at `1x — Normal` for Labs 0 to 5.** It changes how
+> badly the machine misbehaves, and every number in those labs assumes the
+> default. Lab 6 is where you turn it up on purpose.
 
 ---
 
@@ -59,6 +64,23 @@ Two things you measure (the **responses**, or *Y*s):
 > angle perfectly, and the tape gets misread. Two shots at identical settings
 > will not land in the same place. That is the whole reason this is a
 > statistics course and not an algebra exercise.
+
+### The Noise control
+
+The **Noise** menu multiplies every one of those random effects at once. It is
+*not* a sixth factor — it is how well maintained the machine is today.
+
+| Setting | What it means |
+|---|---|
+| `0x` | Perfectly repeatable. Every shot lands in exactly the same place. |
+| `0.5x` | A well-behaved process. |
+| `1x` | The machine as specified. **Use this for Labs 0–5.** |
+| `2x`–`3x` | A machine in poor condition. Small effects start to disappear. |
+| `5x` | Barely usable without heavy replication. |
+
+The physics never changes — only the scatter around it. A factor that is real
+at `1x` is still real at `5x`; the question is whether your design can *see* it.
+That question has a name, **power**, and Lab 6 is about it.
 
 ### Coded units
 
@@ -414,6 +436,104 @@ reasoning.
 
 ---
 
+## Lab 6 — Noise and power: when a good design stops working (60 min)
+
+Everything so far has run on a well-behaved machine. Now break it.
+
+### 6.1 The same experiment, four machines
+
+**Setup.** *Load DOE design* → *De-alias — 2^(5-1) resolution V (16 runs)*.
+Replicates **2**, seed **6001**.
+
+Run the same design four times, changing only the *Noise* setting. Fit main
+effects plus two-factor interactions each time.
+
+| Noise | Typical *s* of a shot | Effect estimate for E | *p* for E |
+|---|---|---|---|
+| 0.5x | | | |
+| 1x | | | |
+| 3x | | | |
+| 5x | | | |
+
+**Q6.1** What happened to the *estimate* of the E effect as the noise rose?
+What happened to its *p*-value? One of those moved by a factor of a billion and
+the other barely moved at all — explain why.
+
+**Q6.2** Factor E is exactly as real at `5x` as at `0.5x`; the physics never
+changed. So what is a *p*-value actually a statement about?
+
+**Q6.3** Do the same for factor C, whose true effect is about six times larger
+than E's. Why does C survive noise that nearly buries E?
+
+### 6.2 Power: the same experiment, eight times
+
+A single *p*-value from a single experiment tells you almost nothing about
+whether a design is adequate — you saw one draw from a distribution. So take
+eight.
+
+**Setup.** Stay at **3x** noise. Run the resolution V design at replicates **2**
+with each of these seeds in turn: **6101, 6102, 6103, 6104, 6105, 6106, 6107,
+6108**. Record whether E comes out significant each time.
+
+| Seed | 6101 | 6102 | 6103 | 6104 | 6105 | 6106 | 6107 | 6108 | **Detected** |
+|---|---|---|---|---|---|---|---|---|---|
+| E significant? | | | | | | | | | **__ / 8** |
+
+That fraction is an estimate of this design's **power** for factor E at this
+noise level.
+
+**Q6.4** You ran one experiment in 6.1 and concluded something about E. Having
+now run eight, how much confidence should you have had in that single answer?
+
+Now spend more shots, two different ways, and repeat all eight seeds for each:
+
+| Strategy | Shots per experiment | Detected |
+|---|---|---|
+| 16 runs × 2 replicates | 32 | __ / 8 |
+| 16 runs × 6 replicates | 96 | __ / 8 |
+| 32 runs (full factorial) × 2 replicates | 64 | __ / 8 |
+
+**Q6.5** Which strategy fixed the problem? Which used more shots?
+
+**Q6.6** The full factorial uses twice the shots of the half-fraction and does
+no better. Compare, for each fit, the residual standard deviation against the
+within-run standard deviation you actually measured. What is sitting in the full
+factorial's error term that is not in the half-fraction's? (How many
+interactions does a 2⁵ design contain, and how many did you put in the model?)
+
+**Q6.7** Complete the sentence in your own words: *runs buy ______, replicates
+buy ______.*
+
+### 6.3 A machine with no noise at all
+
+**Setup.** Any design, replicates **5**, noise **0x**.
+
+**Q6.8** What is the standard deviation of each run? What does that do to the
+pure-error term, and therefore to every *F* test in your ANOVA?
+
+**Q6.9** With noise off, run the curvature test from Lab 2 again. What
+*p*-value do you get, and why is it meaningless?
+
+**Q6.10** If a real process had no measurable variation, how many replicates
+would you run, and what would Design of Experiments be for?
+
+### 6.4 The trap
+
+**Setup.** *Screening — 2^(5-2) resolution III (8 runs)*, replicates **2**,
+noise **3x**, seed 6004. Fit main effects only.
+
+**Q6.11** Is factor E significant here? Compare with the 16-run design at the
+same noise level, which used twice as many shots.
+
+**Q6.12** The 8-run design appears to detect E more reliably than the 16-run
+design does. Using your alias table from Lab 1, explain why that is not good
+news. What is the E column in this design actually estimating?
+
+**Q6.13** State the general lesson in one sentence, in a form you would be
+willing to say to a manager who wants to cut your experiment in half.
+
+---
+
 ## Final report
 
 Two pages, plus figures:
@@ -426,6 +546,8 @@ Two pages, plus figures:
 6. **Recommended settings** for a 10 m target, with confirmation data.
 7. **Total shots fired.** Then state what you would cut if the budget were
    halved, and what you would refuse to cut.
+8. **Power.** At what noise level would your screening design have missed a real
+   factor, and what would you have done about it?
 
 ---
 
@@ -492,6 +614,10 @@ produce:
 | `course/data/phase2-resolutionV-2^(5-1).csv` | 2<sup>5−1</sup> res V + 4 CP, 3 reps | 60 |
 | `course/data/phase3-box-behnken.csv` | Box-Behnken 3-factor, 15 reps | 225 |
 | `course/data/full-factorial-2^5.csv` | Full 2<sup>5</sup>, 3 reps | 96 |
+
+All four were generated at the default noise level (`1x`). Lab 6 has no
+pre-generated data — the point of it is to change the noise yourself and watch
+the conclusions move.
 
 Each row is one shot. `*_coded` columns are the coded levels; the named columns
 are the actual machine settings.

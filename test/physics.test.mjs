@@ -5,7 +5,10 @@ import {
   calculateLaunch, trajectoryAt, apexHeight, randomNormal,
   simulateShot, predictSigma, makeRng, machineState, solveLaunch
 } from '../physics.js';
-import { FACTOR_BOUNDS, NOISE, cupRadius, springRate, effectiveStopAngle, clamp } from '../constants.js';
+import {
+  FACTOR_BOUNDS, NOISE, NOISE_PRESETS, DEFAULT_NOISE_SCALE,
+  cupRadius, springRate, effectiveStopAngle, clamp
+} from '../constants.js';
 
 const nominal = () => calculateLaunch(180, 105, 3, 3, 2);
 
@@ -234,6 +237,78 @@ test('randomNormal recovers its mean and spread over many samples', () => {
   const sd = Math.sqrt(sumSq / n - mean * mean);
   assert.ok(Math.abs(mean - 12) < 0.1, `mean drifted to ${mean}`);
   assert.ok(Math.abs(sd - 3) < 0.1, `sd drifted to ${sd}`);
+});
+
+test('noise scale multiplies spread linearly', () => {
+  const factors = FACTORS_AT(170, 103.5, 3, 3, 2.25);
+  const baseline = predictSigma(factors, 1);
+
+  for (const scale of [0.25, 0.5, 2, 3, 5]) {
+    const scaled = predictSigma(factors, scale);
+    const ratio = scaled / baseline;
+    assert.ok(Math.abs(ratio - scale) < 1e-9, `scale ${scale} gave a ratio of ${ratio}`);
+  }
+});
+
+test('zero noise makes the machine perfectly repeatable', () => {
+  const factors = FACTORS_AT(170, 103.5, 3, 3, 2.25);
+  const nominal = calculateLaunch(170, 103.5, 3, 3, 2.25).distance;
+  const rng = makeRng(3);
+
+  assert.equal(predictSigma(factors, 0), 0);
+  for (let i = 0; i < 100; i++) {
+    assert.ok(Math.abs(simulateShot(factors, rng, 0).distance - nominal) < 1e-12,
+      'a shot deviated with the noise switched off');
+  }
+});
+
+test('scaled noise matches Monte Carlo at every preset', () => {
+  const factors = FACTORS_AT(175, 105, 3, 3, 2);
+  for (const scale of [0.5, 1, 2, 5]) {
+    const rng = makeRng(808);
+    const draws = Array.from({ length: 20000 }, () => simulateShot(factors, rng, scale).distance);
+    const mean = draws.reduce((a, b) => a + b, 0) / draws.length;
+    const sd = Math.sqrt(draws.reduce((s, d) => s + (d - mean) ** 2, 0) / (draws.length - 1));
+    const relativeError = Math.abs(predictSigma(factors, scale) - sd) / sd;
+    assert.ok(relativeError < 0.05, `at ${scale}x the delta method was off by ${(100 * relativeError).toFixed(1)}%`);
+  }
+});
+
+test('the velocity coupling survives scaling, so robustness stays learnable', () => {
+  // Two settings that travel alike; the flat, fast one must stay the noisier of
+  // the pair at every noise level, or the robust-settings lab has no answer.
+  const lofted = FACTORS_AT(183, 111.7, 1.5, 3, 2.25);
+  const flat = FACTORS_AT(190, 95.3, 4.5, 3, 2.25);
+  for (const scale of [0.25, 1, 3, 5]) {
+    assert.ok(predictSigma(flat, scale) > predictSigma(lofted, scale) * 1.2,
+      `the ordering collapsed at ${scale}x`);
+  }
+});
+
+test('a shot consumes the same random numbers whatever the outcome', () => {
+  // Reproducibility depends on the draw count being constant, including for a
+  // dud, so that a seeded data set replays identically.
+  const dud = FACTORS_AT(95, 118, 3, 3, 4);
+  const live = FACTORS_AT(175, 105, 3, 3, 2);
+
+  const afterDud = makeRng(77);
+  simulateShot(dud, afterDud, 1);
+  const afterLive = makeRng(77);
+  simulateShot(live, afterLive, 1);
+
+  assert.equal(afterDud(), afterLive(), 'the generator was left in different states');
+});
+
+test('noise presets are usable and include the default', () => {
+  assert.ok(NOISE_PRESETS.length >= 3);
+  assert.ok(NOISE_PRESETS.some(p => p.value === DEFAULT_NOISE_SCALE));
+  assert.ok(NOISE_PRESETS.some(p => p.value === 0), 'a deterministic option should exist');
+  for (const preset of NOISE_PRESETS) {
+    assert.ok(Number.isFinite(preset.value) && preset.value >= 0);
+    assert.ok(preset.label && preset.note, 'every preset needs a label and a note');
+  }
+  const values = NOISE_PRESETS.map(p => p.value);
+  assert.deepEqual(values, [...values].sort((a, b) => a - b), 'presets should be ordered');
 });
 
 test('geometry helpers agree with the documented ranges', () => {

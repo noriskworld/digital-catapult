@@ -1,7 +1,7 @@
 import './style.css';
 import { calculateLaunch, simulateShot, predictSigma, makeRng, trajectoryAt, apexHeight } from './physics.js';
 import { CatapultRenderer } from './animation.js';
-import { FACTOR_BOUNDS, clamp } from './constants.js';
+import { FACTOR_BOUNDS, NOISE_PRESETS, DEFAULT_NOISE_SCALE, clamp } from './constants.js';
 import {
   fullFactorial2, fractionalFactorial2, boxBehnken, withCentrePoints
 } from './doe/designs.js';
@@ -35,6 +35,7 @@ let activeSeed = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   renderer = new CatapultRenderer('sim-canvas');
+  populateNoiseOptions();
   showPreview();
 
   document.getElementById('add-row-btn').addEventListener('click', () => addConfigRow());
@@ -76,6 +77,30 @@ document.addEventListener('DOMContentLoaded', () => {
   addConfigRow(150, 110, 2, 2, 1);
   addConfigRow(120, 95, 1, 1, 3);
 });
+
+/**
+ * Fills the noise selector from the shared preset list, so the menu and the
+ * model can never disagree about what "High" means.
+ */
+function populateNoiseOptions() {
+  const select = document.getElementById('noise-select');
+  if (!select) return;
+
+  for (const preset of NOISE_PRESETS) {
+    const option = document.createElement('option');
+    option.value = String(preset.value);
+    option.textContent = `${preset.value}x - ${preset.label.replace(/ \(default\)$/, '')}`;
+    option.title = preset.note;
+    if (preset.value === DEFAULT_NOISE_SCALE) option.selected = true;
+    select.appendChild(option);
+  }
+}
+
+/** The noise multiplier currently selected. */
+function selectedNoiseScale() {
+  const raw = Number(document.getElementById('noise-select')?.value);
+  return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_NOISE_SCALE;
+}
 
 /* -------------------------------------------------------------- status bar */
 
@@ -429,6 +454,7 @@ function runBatch() {
   arenaBatch = null;
   batchSeq++;
 
+  const noiseScale = selectedNoiseScale();
   const shots = [];
   let duds = 0;
 
@@ -440,13 +466,13 @@ function runBatch() {
       config.armHole, config.pinElevation
     );
     if (!launch.valid) duds++;
-    const sigma = predictSigma(config);
+    const sigma = predictSigma(config, noiseScale);
 
     for (let rep = 1; rep <= replicates; rep++) {
       // Always draw, even for a dud (simulateShot reports zero for one). Keeping
       // the number of draws per shot constant is what lets a given seed
       // reproduce a data set exactly, in the app and in the offline toolkit.
-      const distance = simulateShot(config, rng).distance;
+      const distance = simulateShot(config, rng, noiseScale).distance;
 
       shots.push({
         batch: batchSeq,
@@ -454,6 +480,7 @@ function runBatch() {
         config,
         launch,
         sigma,
+        noiseScale,
         distance,
         color: RUN_COLORS[idx % RUN_COLORS.length],
         // Stretches the parabola so a noisy shot still lands on its own mark.
@@ -468,9 +495,14 @@ function runBatch() {
   collectedShots.push(...shots);
   shots.forEach(appendResultRow);
 
+  const noiseNote = noiseScale === DEFAULT_NOISE_SCALE
+    ? ''
+    : noiseScale === 0
+      ? ' Noise is off, so every replicate is identical.'
+      : ` Noise ${noiseScale}x.`;
   const message = duds
-    ? `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'}. ${duds} configuration${duds === 1 ? '' : 's'} did not launch - check that pull-back clears the effective stop angle.`
-    : `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'} across ${configs.length} configuration${configs.length === 1 ? '' : 's'}.`;
+    ? `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'}. ${duds} configuration${duds === 1 ? '' : 's'} did not launch - check that pull-back clears the effective stop angle.${noiseNote}`
+    : `Fired ${shots.length} shot${shots.length === 1 ? '' : 's'} across ${configs.length} configuration${configs.length === 1 ? '' : 's'}.${noiseNote}`;
   setStatus(message, duds ? 'error' : 'success');
 
   animateShots(shots, () => { launchBtn.disabled = false; });
@@ -600,7 +632,7 @@ function animateShots(shots, onComplete) {
 /* -------------------------------------------------------------- data export */
 
 const EXPORT_HEADERS = [
-  'Batch', 'Config_ID', 'Replicate',
+  'Batch', 'Config_ID', 'Replicate', 'Noise_Scale',
   'Pull_Angle_deg', 'Stop_Angle_deg', 'Bungee_Pos', 'Arm_Hole', 'Pin_Elevation',
   'Distance_m', 'Predicted_Sigma_m', 'Release_Velocity_mps', 'Launch_Angle_deg'
 ];
@@ -608,7 +640,7 @@ const EXPORT_HEADERS = [
 /** One export row per recorded shot - raw data, ready for Minitab or JMP. */
 function exportRows() {
   return collectedShots.map(s => [
-    s.batch, s.config.id, s.rep,
+    s.batch, s.config.id, s.rep, s.noiseScale,
     s.config.pullBackAngle, s.config.stopAngle, s.config.bungeePosition,
     s.config.armHole, s.config.pinElevation,
     s.distance.toFixed(3), s.sigma.toFixed(3),

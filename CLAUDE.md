@@ -17,6 +17,7 @@ node --test --test-name-pattern="pivot"       # one test
 node doe/run-study.mjs                        # full sequential DOE study + answer key
 node doe/run-study.mjs --target=14 --write    # other target; --write refreshes course/data/
 
+npm run power                                 # design x noise power tables (Lab 6)
 npm run build:standalone                      # -> standalone/digital-catapult.html
 ```
 
@@ -37,6 +38,7 @@ And the DOE layer, which the course material depends on:
 - [doe/analysis.js](doe/analysis.js) — OLS, ANOVA with exact *F* *p*-values, lack of fit, curvature test, target optimiser.
 - [doe/catapult-doe.js](doe/catapult-doe.js) — the catapult's factor windows and design execution. Browser-safe (no `node:` imports), which is what lets [main.js](main.js) share it.
 - [doe/run-study.mjs](doe/run-study.mjs) — CLI only; the one file that imports `node:fs`.
+- [doe/power-study.mjs](doe/power-study.mjs) — CLI; repeats each design across noise levels and reports detection rates. Each design is fitted with the richest model it supports: fitting main-effects-only to this system dumps the large interactions into the residual and measures misspecification rather than power.
 
 Data flow per batch: config rows → `readConfigs()` (clamps to `FACTOR_BOUNDS`) → `calculateLaunch()` once per config for the drawn arc → `simulateShot()` once per replicate for the recorded distance → result rows + `collectedShots` → `animateShots()` drives the renderer.
 
@@ -97,6 +99,10 @@ The ground ruler steps over **integer tick indices**, never an accumulating floa
 `simulateShot()` perturbs the *physical state* (band stiffness, stop angle, cup radius, pull-back, mass) and re-solves, then adds measurement error. The spread in distance therefore depends on the settings rather than following a formula. The key term is `NOISE.stopAngleVelocityCoupling`: release scatter grows with impact severity, so a flat fast shot is less repeatable than a lofted slow one that lands in the same place. **That coupling is the entire basis of the course's robust-optimisation lab** — remove it and the variation response collapses to a constant multiple of the mean.
 
 `predictSigma()` is a delta-method (first-order error propagation) estimate of that spread, deterministic and agreeing with Monte Carlo to within 0.3%. A test pins that agreement.
+
+**The noise scale** (`simulateShot(factors, rng, noiseScale)`, `predictSigma(factors, noiseScale)`, `runDesign({noiseScale})`) multiplies every magnitude in `NOISE` — except `stopAngleVelocityCoupling`, deliberately, because that sets the *shape* of the variance structure rather than its size. Scaling it too would flatten the lofted-versus-flat difference and destroy the robustness lab. Tests assert both the linearity and the surviving ordering.
+
+At `noiseScale: 0` the process is exactly deterministic, which makes pure error zero, every *F* ratio infinite and every *p*-value 0. That is a legitimate teaching state, not a bug — `fPValue` maps `Infinity` to 0 (most significant, not least), and `run-study.mjs` reports the degeneracy rather than dressing it up as a finding. Within-run spreads at zero noise are ~1e-15 floating-point residue, not exact zeros; assert with a tolerance.
 
 ### Seeded reproducibility is a contract
 

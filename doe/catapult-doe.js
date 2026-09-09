@@ -9,6 +9,7 @@
  */
 
 import { calculateLaunch, simulateShot, predictSigma, makeRng } from '../physics.js';
+import { DEFAULT_NOISE_SCALE } from '../constants.js';
 import { decode } from './designs.js';
 
 /** @type {Array<{letter: string, name: string, key: string, low: number, high: number, unit: string}>} */
@@ -62,9 +63,16 @@ export function settingsFor(codedRow, activeFactors) {
  * @param {Array<object>} [options.factors=FACTORS] - the active factors
  * @param {number} [options.replicates=3]
  * @param {number} [options.seed=20260907]
+ * @param {number} [options.noiseScale=1] - multiplies every random effect, so a
+ *        design can be run against a quiet or a violent version of the machine
  * @returns {{runs: Array<object>, means: number[], spreads: number[], shots: Array<object>}}
  */
-export function runDesign(design, { factors = FACTORS, replicates = 3, seed = 20260907 } = {}) {
+export function runDesign(design, {
+  factors = FACTORS,
+  replicates = 3,
+  seed = 20260907,
+  noiseScale = DEFAULT_NOISE_SCALE
+} = {}) {
   const rng = makeRng(seed);
   const runs = [];
   const shots = [];
@@ -78,7 +86,7 @@ export function runDesign(design, { factors = FACTORS, replicates = 3, seed = 20
 
     const distances = [];
     for (let rep = 1; rep <= replicates; rep++) {
-      const shot = simulateShot(settings, rng);
+      const shot = simulateShot(settings, rng, noiseScale);
       distances.push(shot.distance);
       shots.push({ run: index + 1, rep, coded: codedRow, settings, distance: shot.distance });
     }
@@ -96,7 +104,7 @@ export function runDesign(design, { factors = FACTORS, replicates = 3, seed = 20
       mean,
       spread,
       nominal: nominal.distance,
-      predictedSigma: predictSigma(settings)
+      predictedSigma: predictSigma(settings, noiseScale)
     });
   });
 
@@ -115,12 +123,13 @@ export function runDesign(design, { factors = FACTORS, replicates = 3, seed = 20
  * @param {Record<string, number>} settings
  * @param {number} [shots=400]
  * @param {number} [seed=99991]
+ * @param {number} [noiseScale=1]
  * @returns {{mean: number, spread: number, n: number, halfWidth95: number}}
  */
-export function confirm(settings, shots = 400, seed = 99991) {
+export function confirm(settings, shots = 400, seed = 99991, noiseScale = DEFAULT_NOISE_SCALE) {
   const rng = makeRng(seed);
   const distances = [];
-  for (let i = 0; i < shots; i++) distances.push(simulateShot(settings, rng).distance);
+  for (let i = 0; i < shots; i++) distances.push(simulateShot(settings, rng, noiseScale).distance);
 
   const mean = distances.reduce((a, b) => a + b, 0) / shots;
   const spread = Math.sqrt(distances.reduce((s, d) => s + (d - mean) ** 2, 0) / (shots - 1));

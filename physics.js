@@ -20,6 +20,7 @@ import {
   BAND_REST_LENGTH,
   DRAG_FACTOR,
   NOISE,
+  DEFAULT_NOISE_SCALE,
   springRate,
   cupRadius,
   effectiveStopAngle as computeEffectiveStopAngle
@@ -246,22 +247,48 @@ export function makeRng(seed) {
 }
 
 /**
+ * The noise magnitudes in force at a given scale.
+ *
+ * Note that `stopAngleVelocityCoupling` is not scaled - it sets the *shape* of
+ * the variance structure (scatter growing with impact severity), not its size.
+ * Scaling it too would flatten the difference between a lofted shot and a flat
+ * one, which is the thing the robustness lab depends on.
+ *
+ * @param {number} scale
+ * @returns {typeof NOISE}
+ */
+function noiseAt(scale) {
+  return {
+    springRateRelative: NOISE.springRateRelative * scale,
+    stopAngleDeg: NOISE.stopAngleDeg * scale,
+    stopAngleVelocityCoupling: NOISE.stopAngleVelocityCoupling,
+    cupRadiusM: NOISE.cupRadiusM * scale,
+    pullBackAngleDeg: NOISE.pullBackAngleDeg * scale,
+    massRelative: NOISE.massRelative * scale,
+    measurementM: NOISE.measurementM * scale
+  };
+}
+
+/**
  * Applies the machine's random effects to a nominal state.
  *
  * @param {MachineState} nominal
  * @param {() => number} rng
+ * @param {number} releaseVelocity - nominal release speed, which sets how hard
+ *        the arm arrives at the stop and therefore how cleanly it releases
+ * @param {typeof NOISE} noise - magnitudes already scaled
  * @returns {MachineState}
  */
-function perturbState(nominal, rng, releaseVelocity = 0) {
+function perturbState(nominal, rng, releaseVelocity, noise) {
   const z = () => randomNormal(0, 1, rng);
   // The arm rebounds off the stop less repeatably the harder it arrives.
-  const stopSigma = NOISE.stopAngleDeg * (1 + NOISE.stopAngleVelocityCoupling * releaseVelocity);
+  const stopSigma = noise.stopAngleDeg * (1 + noise.stopAngleVelocityCoupling * releaseVelocity);
   return {
-    pullBackAngle: nominal.pullBackAngle + NOISE.pullBackAngleDeg * z(),
+    pullBackAngle: nominal.pullBackAngle + noise.pullBackAngleDeg * z(),
     stopAngleDeg: nominal.stopAngleDeg + stopSigma * z(),
-    springRate: nominal.springRate * (1 + NOISE.springRateRelative * z()),
-    cupRadius: Math.max(0.05, nominal.cupRadius + NOISE.cupRadiusM * z()),
-    mass: nominal.mass * (1 + NOISE.massRelative * z())
+    springRate: nominal.springRate * (1 + noise.springRateRelative * z()),
+    cupRadius: Math.max(0.05, nominal.cupRadius + noise.cupRadiusM * z()),
+    mass: nominal.mass * (1 + noise.massRelative * z())
   };
 }
 
@@ -273,20 +300,26 @@ function perturbState(nominal, rng, releaseVelocity = 0) {
  *
  * @param {object} factors - {pullBackAngle, stopAngle, bungeePosition, armHole, pinElevation}
  * @param {() => number} [rng=Math.random]
+ * @param {number} [noiseScale=1] - multiplies every random effect; 0 makes the
+ *        machine perfectly repeatable
  * @returns {{distance: number, launch: LaunchResult, nominal: LaunchResult}}
  */
-export function simulateShot(factors, rng = Math.random) {
+export function simulateShot(factors, rng = Math.random, noiseScale = DEFAULT_NOISE_SCALE) {
   const nominalState = machineState(
     factors.pullBackAngle, factors.stopAngle, factors.bungeePosition,
     factors.armHole, factors.pinElevation
   );
   const nominal = solveLaunch(nominalState);
-  const launch = solveLaunch(perturbState(nominalState, rng, nominal.releaseVelocity));
+  const noise = noiseAt(noiseScale);
+  const launch = solveLaunch(perturbState(nominalState, rng, nominal.releaseVelocity, noise));
+
+  // Draw the measurement error unconditionally, even when the shot is a dud, so
+  // that every shot consumes the same number of random numbers. That is what
+  // keeps a seeded data set reproducible.
+  const readingError = randomNormal(0, noise.measurementM, rng);
 
   // A shot that never leaves the cup is measured as zero, not as noise.
-  const measured = launch.valid
-    ? Math.max(0, launch.distance + randomNormal(0, NOISE.measurementM, rng))
-    : 0;
+  const measured = launch.valid ? Math.max(0, launch.distance + readingError) : 0;
 
   return { distance: measured, launch, nominal };
 }
@@ -300,9 +333,10 @@ export function simulateShot(factors, rng = Math.random) {
  * analysis is still to fire replicates and take their standard deviation.
  *
  * @param {object} factors
+ * @param {number} [noiseScale=1] - the same multiplier used by simulateShot
  * @returns {number} metres
  */
-export function predictSigma(factors) {
+export function predictSigma(factors, noiseScale = DEFAULT_NOISE_SCALE) {
   const nominal = machineState(
     factors.pullBackAngle, factors.stopAngle, factors.bungeePosition,
     factors.armHole, factors.pinElevation
@@ -310,16 +344,18 @@ export function predictSigma(factors) {
   const base = solveLaunch(nominal);
   if (!base.valid) return 0;
 
+  const noise = noiseAt(noiseScale);
+
   // Perturbation sizes for the numerical derivative, and the SD of each source.
   const sources = [
-    ['pullBackAngle', 0.01, NOISE.pullBackAngleDeg],
-    ['stopAngleDeg', 0.01, NOISE.stopAngleDeg * (1 + NOISE.stopAngleVelocityCoupling * base.releaseVelocity)],
-    ['springRate', nominal.springRate * 1e-4, nominal.springRate * NOISE.springRateRelative],
-    ['cupRadius', 1e-5, NOISE.cupRadiusM],
-    ['mass', nominal.mass * 1e-4, nominal.mass * NOISE.massRelative]
+    ['pullBackAngle', 0.01, noise.pullBackAngleDeg],
+    ['stopAngleDeg', 0.01, noise.stopAngleDeg * (1 + noise.stopAngleVelocityCoupling * base.releaseVelocity)],
+    ['springRate', nominal.springRate * 1e-4, nominal.springRate * noise.springRateRelative],
+    ['cupRadius', 1e-5, noise.cupRadiusM],
+    ['mass', nominal.mass * 1e-4, nominal.mass * noise.massRelative]
   ];
 
-  let varianceSum = NOISE.measurementM ** 2;
+  let varianceSum = noise.measurementM ** 2;
   for (const [key, step, sigma] of sources) {
     const up = solveLaunch({ ...nominal, [key]: nominal[key] + step });
     const down = solveLaunch({ ...nominal, [key]: nominal[key] - step });

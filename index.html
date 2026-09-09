@@ -36,6 +36,12 @@
                 <li><strong>Arm Hole (1.0 &ndash; 5.0):</strong> Cup placement along the arm radius (1 = near pivot, 5 = tip). Affects rotational inertia and tangential release velocity.</li>
                 <li><strong>Pin Elevation (1.0 &ndash; 5.0):</strong> Height adjustment on the stop pin, fine-tuning the effective release angle.</li>
               </ul>
+              <p class="guide-note">
+                <strong>Noise</strong> is not a factor &ndash; it is how badly the machine misbehaves.
+                Turn it up and small effects vanish into the scatter, so a design that detected
+                them yesterday no longer can. Turn it to <em>None</em> and every shot is identical,
+                which makes replication pointless and every test meaningless.
+              </p>
             </div>
 
             <div class="guide-card">
@@ -52,7 +58,7 @@
               <ol>
                 <li><strong>Build Runs:</strong> Use <em>Add Configuration</em> to create trial runs, or directly edit existing rows.</li>
                 <li><strong>Excel Copy-Paste:</strong> Copy a 5-column DOE run table from Excel or Google Sheets (<kbd>Ctrl</kbd>+<kbd>C</kbd>) and paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>) directly into the table.</li>
-                <li><strong>Simulate:</strong> Set <em>Replicates</em> (3&ndash;5 is typical) and click <em>Run All Configurations</em>. Every shot follows its true ballistic arc and is recorded as its own row.</li>
+                <li><strong>Simulate:</strong> Set <em>Replicates</em> (3&ndash;5 is typical), choose a <em>Noise</em> level, and click <em>Run All Configurations</em>. Every shot follows its true ballistic arc and is recorded as its own row.</li>
                 <li><strong>Analyze:</strong> Results accumulate across batches until you press <em>Clear Results</em>. Use <em>Copy to Clipboard</em> or <em>Export CSV</em> to pull the raw shot data into Minitab, JMP, Excel or Python for ANOVA and regression.</li>
               </ol>
             </div>
@@ -117,6 +123,12 @@
               Seed
               <input type="text" id="seed-input" inputmode="numeric" placeholder="random"
                      title="Leave blank for genuine randomness, or enter a number so the same data set can be reproduced.">
+            </label>
+            <label class="replicates-field" for="noise-select">
+              Noise
+              <select id="noise-select"
+                      title="Multiplies every random effect in the machine. Raise it and small effects disappear into the scatter; a design that worked before will stop detecting them.">
+              </select>
             </label>
             <button id="launch-btn" class="btn primary">🚀 Run All Configurations</button>
           </div>

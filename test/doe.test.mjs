@@ -276,6 +276,40 @@ test('a seed reproduces a whole data set', () => {
   );
 });
 
+test('runDesign honours the noise scale', () => {
+  const design = fractionalFactorial2(5, ['E=ABCD']);
+  const options = { replicates: 4, seed: 606 };
+
+  const quiet = runDesign(design, { ...options, noiseScale: 0 });
+  // Identical replicates leave floating-point residue of order 1e-15 rather
+  // than an exact zero, because a mean of n identical values need not round
+  // back to that value. Assert what is true, not what is tidy.
+  assert.ok(quiet.spreads.every(s => Math.abs(s) < 1e-12),
+    `zero noise should give zero within-run spread, got ${Math.max(...quiet.spreads)}`);
+  quiet.runs.forEach(r => assert.ok(Math.abs(r.mean - r.nominal) < 1e-12));
+
+  const normal = runDesign(design, { ...options, noiseScale: 1 });
+  const loud = runDesign(design, { ...options, noiseScale: 4 });
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+  assert.ok(mean(loud.spreads) > mean(normal.spreads) * 2,
+    'four times the noise should visibly widen the runs');
+});
+
+test('raising the noise costs a small factor its significance', () => {
+  // E is the smallest real effect. It should be found easily on a quiet machine
+  // and lost on a loud one, using the same design and the same seed.
+  const design = fractionalFactorial2(5, ['E=ABCD']);
+  const pFor = noiseScale => {
+    const { design: X, response: y } = shotLevel(
+      runDesign(design, { replicates: 2, seed: 2468, noiseScale })
+    );
+    return fit(X, y, 'interaction').terms.find(t => t.label === 'E').pValue;
+  };
+
+  assert.ok(pFor(0.5) < 0.05, 'E should be detected on a quiet machine');
+  assert.ok(pFor(6) > 0.05, 'E should be lost on a very noisy one');
+});
+
 test('factors outside a response-surface subset are held at their centre', () => {
   const settings = settingsFor([1, -1, 0], RSM_FACTORS);
   assert.equal(settings.armHole, 3);
