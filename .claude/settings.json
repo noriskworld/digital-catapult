@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(timeout 30 node /Users/yunweihu/Documents/code/digital-catapult/doe/power-study.mjs --trials=5 --alpha=0.05)",
+      "Bash(node doe/power-study.mjs --trials=2)",
+      "Bash(node /private/tmp/claude-501/-Users-yunweihu-Documents-code-digital-catapult/10d02c6c-4daa-4bbf-ac34-a197ec0f685a/scratchpad/ff.mjs)",
+      "Bash(perl -pi -e \"s|'\\\\.\\\\./\\\\.\\\\./\\\\.\\\\./\\\\.\\\\./Users/yunweihu/Documents/code/digital-catapult/|'/Users/yunweihu/Documents/code/digital-catapult/|g\" ff.mjs)",
+      "Bash(node ff.mjs)",
+      "Bash(perl -pi -e \"s/\\\\{ D: 'AB', E: 'AC' \\\\}/['D=AB','E=AC']/\" ff.mjs)"
+    ]
+  }
+}

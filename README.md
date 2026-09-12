@@ -80,7 +80,7 @@ A lumped drag term is applied to the horizontal component, $v_x = v_0\cos\alpha 
 - **Auto-Scaling Arena:** The view fits itself to the longest shot and the highest arc in a batch, so results stay on screen from a 1 m dribble to a 30 m throw.
 - **Replicates and seeding:** Fire 1–30 shots per configuration in a single batch. Results accumulate across batches until cleared. Set a seed to make a whole data set reproducible; leave it blank for fresh randomness.
 - **Tunable noise:** A single control scales every random effect from `0x` (perfectly repeatable) to `5x` (barely usable). The physics is unchanged — only the scatter around it — so a design that comfortably detected a factor at `1x` will start missing it at `3x`. This turns statistical power into something a class can watch happen.
-- **Built-in DOE designs:** Load a full factorial, a fractional factorial (resolution III or V), centre points, or a Box-Behnken response surface directly into the run table.
+- **Built-in DOE designs:** Load a full factorial, a fractional factorial (resolution III or V), a 12-run Plackett-Burman screen, centre points, or a Box-Behnken response surface directly into the run table.
 - **Simultaneous Multi-Run Animation:** Run every configuration at once with unique tracer colors and stacked, numbered landing flags.
 - **Excel / Google Sheets Copy-Paste:** Copy any 5-column trial table directly from a spreadsheet and paste into the configuration panel.
 - **DOE Response Tracking:** Input factor settings and output responses side-by-side, one row per shot.

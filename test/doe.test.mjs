@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   fullFactorial2, fractionalFactorial2, aliasStructure, boxBehnken,
-  withCentrePoints, replicate, randomiseRunOrder, decode, encode
+  withCentrePoints, replicate, randomiseRunOrder, decode, encode,
+  plackettBurman, aliasCorrelations
 } from '../doe/designs.js';
 import {
   fit, lackOfFit, curvatureTest, optimiseToTarget, fPValue, modelTerms
@@ -66,6 +67,53 @@ test('resolution V design aliases main effects only with high-order terms', () =
   // No main effect is aliased with any two-factor interaction.
   for (const letter of 'ABCDE') {
     assert.ok(a.aliases[letter].every(x => x.length > 2), `${letter} aliased with a 2FI`);
+  }
+});
+
+test('every Plackett-Burman size is balanced and fully orthogonal', () => {
+  for (const runs of [8, 12, 16, 20, 24]) {
+    const d = plackettBurman(runs - 1, runs);
+    assert.equal(d.length, runs, `${runs}-run design has the wrong row count`);
+    for (let i = 0; i < runs - 1; i++) {
+      assert.equal(column(d, i).reduce((a, b) => a + b, 0), 0, `column ${i} not balanced`);
+      for (let j = i + 1; j < runs - 1; j++) {
+        assert.equal(dot(column(d, i), column(d, j)), 0, `columns ${i},${j} not orthogonal`);
+      }
+    }
+  }
+});
+
+test('Plackett-Burman picks the smallest run count that fits, and refuses to overfill', () => {
+  assert.equal(plackettBurman(5).length, 8);
+  assert.equal(plackettBurman(7).length, 8);
+  assert.equal(plackettBurman(8).length, 12);
+  assert.equal(plackettBurman(11).length, 12);
+  assert.throws(() => plackettBurman(12, 12), /at most 11 factors/);
+  assert.throws(() => plackettBurman(3, 10), /No Plackett-Burman generator/);
+});
+
+test('a 12-run Plackett-Burman partially aliases every main effect at one third', () => {
+  const entries = aliasCorrelations(plackettBurman(5, 12));
+  assert.equal(entries.length, 5);
+  for (const { effect, worst, correlations } of entries) {
+    // Six two-factor interactions do not contain this effect; each is aliased
+    // at exactly +/-1/3 -- the signature that makes the design non-regular.
+    assert.equal(Object.keys(correlations).length, 6, `${effect} has the wrong alias count`);
+    assert.ok(Math.abs(worst - 1 / 3) < 1e-12, `${effect} worst correlation is ${worst}`);
+    for (const [pair, r] of Object.entries(correlations)) {
+      assert.ok(Math.abs(Math.abs(r) - 1 / 3) < 1e-12, `${effect} vs ${pair} is ${r}`);
+    }
+  }
+});
+
+test('a regular resolution III design confounds completely rather than partially', () => {
+  // The contrast that justifies teaching both: same resolution, different shape
+  // of bias. Here D is fully confounded with AB and clean against everything else.
+  const entries = aliasCorrelations(fractionalFactorial2(5, ['D=AB', 'E=AC']));
+  const d = entries.find(e => e.effect === 'D');
+  assert.equal(d.correlations.AB, 1);
+  for (const [pair, r] of Object.entries(d.correlations)) {
+    if (pair !== 'AB') assert.equal(r, 0, `D unexpectedly correlated with ${pair}`);
   }
 });
 

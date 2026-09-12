@@ -1,0 +1,104 @@
+---
+title: "Catapult DOE — Live Results Walkthrough"
+subtitle: "Observable JS charts, driven directly from course/data — no Python required"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: slide
+---
+
+## Why This Deck Exists
+
+This is a demo of building slides with **Quarto + reveal.js**, using
+**Observable JS (`{ojs}`)** code chunks instead of Python — since this
+project's whole stack (physics, DOE designs, analysis) is vanilla JS.
+
+::: {.incremental}
+- Quarto's core rendering (Markdown → reveal.js/Beamer/PPTX) needs no runtime beyond Pandoc
+- `{ojs}` chunks execute live in the browser via Observable's bundled runtime — `d3` and `Plot` are available with no npm install
+- Charts below load straight from `course/data/phase1-screening-2^(5-2).csv`, the same file [doe/run-study.mjs](../../doe/run-study.mjs) generates
+:::
+
+## The Screening Design
+
+Phase 1 is a resolution III 2^(5-2) fractional factorial over the five
+catapult factors (`A` pull-back angle, `B` stop angle, `C` bungee position,
+`D` arm hole, `E` pin elevation), replicated per run.
+
+```{ojs}
+data = d3.csv("../data/phase1-screening-2^(5-2).csv", d3.autoType)
+```
+
+```{ojs}
+Inputs.table(data, {rows: 6})
+```
+
+## Distance vs. Pull-Back Angle
+
+A live scatter — every point below is read out of the actual CSV at render
+time, colored by arm hole (`D`) to eyeball a possible interaction.
+
+```{ojs}
+Plot.plot({
+  width: 800,
+  height: 420,
+  x: {label: "Pull-back angle A (°)"},
+  y: {label: "Distance (m)"},
+  color: {legend: true, label: "Arm hole D"},
+  marks: [
+    Plot.dot(data, {
+      x: "A_pullBackAngle",
+      y: "Distance_m",
+      fill: "D_armHole",
+      r: 4
+    })
+  ]
+})
+```
+
+## Filter Interactively
+
+::: {.columns}
+::: {.column width="40%"}
+```{ojs}
+viewof armHole = Inputs.select(
+  [...new Set(data.map(d => d.D_armHole))].sort((a, b) => a - b),
+  {label: "Arm hole (D)"}
+)
+```
+
+Pick a level of `D` and the plot on the right updates — this is a live
+Observable reactive cell, not a pre-rendered image.
+:::
+
+::: {.column width="60%"}
+```{ojs}
+Plot.plot({
+  width: 480,
+  height: 380,
+  x: {label: "Pull-back angle A (°)"},
+  y: {label: "Distance (m)", domain: [0, d3.max(data, d => d.Distance_m) * 1.1]},
+  marks: [
+    Plot.dot(
+      data.filter(d => d.D_armHole === armHole),
+      {x: "A_pullBackAngle", y: "Distance_m", r: 5}
+    )
+  ]
+})
+```
+:::
+:::
+
+## Takeaways
+
+::: {.incremental}
+- No Python, no `uv`, no Jupyter kernel — this whole deck is Pandoc + a browser
+- Data stays live: regenerate `course/data/*.csv` via `node doe/run-study.mjs --write` and re-render, no manual chart re-export
+- For the full styled course deck, [course/lecture-slides.html](../lecture-slides.html) remains the source of truth — this file is a template for *new*, data-driven decks
+:::
+
+::: notes
+Presenter note: if you add more phases, duplicate the pattern above —
+one `d3.csv(...)` cell per data file, one `Plot.plot(...)` cell per view.
+:::

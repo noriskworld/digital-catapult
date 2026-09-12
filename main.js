@@ -3,7 +3,7 @@ import { calculateLaunch, simulateShot, predictSigma, makeRng, trajectoryAt, ape
 import { CatapultRenderer } from './animation.js';
 import { FACTOR_BOUNDS, NOISE_PRESETS, DEFAULT_NOISE_SCALE, clamp } from './constants.js';
 import {
-  fullFactorial2, fractionalFactorial2, boxBehnken, withCentrePoints
+  fullFactorial2, fractionalFactorial2, plackettBurman, boxBehnken, withCentrePoints
 } from './doe/designs.js';
 import { FACTORS, RSM_FACTORS, settingsFor } from './doe/catapult-doe.js';
 
@@ -256,6 +256,11 @@ const DESIGN_LIBRARY = {
     label: '2^(5-2) resolution III screening',
     factors: FACTORS,
     build: () => fractionalFactorial2(5, ['D=AB', 'E=AC'])
+  },
+  'pb-12': {
+    label: '12-run Plackett-Burman screening',
+    factors: FACTORS,
+    build: () => plackettBurman(5, 12)
   },
   'frac-v': {
     label: '2^(5-1) resolution V',

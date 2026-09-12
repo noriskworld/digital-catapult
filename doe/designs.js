@@ -117,6 +117,109 @@ export function aliasStructure(k, generators) {
 }
 
 /**
+ * Cyclic generating rows for the Plackett-Burman designs, one per run count.
+ *
+ * Each string has N-1 entries and seeds N-1 rows by successive rotation; an
+ * all-low run completes the design. N = 8 and N = 16 are powers of two and
+ * reproduce a regular fractional factorial, which is exactly why they are worth
+ * offering: they let a class see that Plackett-Burman is only a *different*
+ * design when N is not a power of two.
+ */
+const PB_GENERATORS = {
+  8:  '+++-+--',
+  12: '++-+++---+-',
+  16: '++++-+-++--+---',
+  20: '++--++++-+-+----++-',
+  24: '+++++-+-++--++--+-+----'
+};
+
+/**
+ * Plackett-Burman screening design: N runs for up to N-1 factors, where N is a
+ * multiple of four rather than a power of two.
+ *
+ * Built by rotating a cyclic generating row, then adding one run with every
+ * factor low. Columns are orthogonal and balanced, so main effects are still
+ * estimated independently of each other.
+ *
+ * The reason to reach for one is run economy at awkward factor counts: five
+ * factors need 8 runs as a regular 2^(5-2), but eleven factors would need 16,
+ * whereas a 12-run Plackett-Burman covers them all.
+ *
+ * The price is a *different kind* of confounding. A regular resolution III
+ * design aliases each main effect completely with a few specific two-factor
+ * interactions. A non-regular Plackett-Burman spreads that bias thinly across
+ * many of them at once - for N = 12, every main effect is partially aliased
+ * with every two-factor interaction it is not part of, at a correlation of
+ * plus or minus one third. Use `aliasCorrelations` to see it.
+ *
+ * @param {number} k - factors to keep (columns beyond this are dropped)
+ * @param {number} [runs] - 8, 12, 16, 20 or 24; defaults to the smallest that fits
+ * @returns {number[][]} `runs` rows of k coded levels
+ */
+export function plackettBurman(k, runs = [8, 12, 16, 20, 24].find(n => n > k)) {
+  const generator = PB_GENERATORS[runs];
+  if (!generator) {
+    throw new Error(`No Plackett-Burman generator for ${runs} runs (have 8, 12, 16, 20, 24)`);
+  }
+  if (k > runs - 1) {
+    throw new Error(`A ${runs}-run Plackett-Burman holds at most ${runs - 1} factors, not ${k}`);
+  }
+
+  const seed = generator.split('').map(c => (c === '+' ? 1 : -1));
+  const rows = [];
+  for (let r = 0; r < seed.length; r++) {
+    // Rotate right by r: row r column c takes seed[(c - r) mod length].
+    rows.push(Array.from({ length: k }, (_, c) => seed[(c - r + seed.length) % seed.length]));
+  }
+  rows.push(new Array(k).fill(-1));
+  return rows;
+}
+
+/**
+ * Correlations between each main-effect column and each two-factor interaction
+ * column - the honest way to read a non-regular design's confounding.
+ *
+ * `aliasStructure` answers the same question for regular fractional factorials,
+ * where the answer is always 0 or +/-1 and can be derived from the generators
+ * alone. A Plackett-Burman needs the design matrix itself, because its
+ * correlations sit between those extremes.
+ *
+ * A correlation of +/-1 means the pair is fully confounded and no amount of data
+ * will separate them. Anything strictly between 0 and 1 means the estimate is
+ * biased by that fraction of the interaction - smaller than full confounding,
+ * but spread over far more terms.
+ *
+ * @param {number[][]} design - coded rows
+ * @param {number} [k=design[0].length] - main effects to report
+ * @returns {Array<{effect: string, worst: number, correlations: Record<string, number>}>}
+ */
+export function aliasCorrelations(design, k = design[0].length) {
+  const letters = 'ABCDEFGHIJK'.slice(0, k).split('');
+  const n = design.length;
+  const dot = (u, v) => u.reduce((s, x, i) => s + x * v[i], 0) / n;
+
+  const main = letters.map((_, i) => design.map(row => row[i]));
+  const pairs = [];
+  for (let i = 0; i < k; i++) {
+    for (let j = i + 1; j < k; j++) {
+      pairs.push({ label: letters[i] + letters[j], i, j, column: design.map(row => row[i] * row[j]) });
+    }
+  }
+
+  return letters.map((letter, i) => {
+    const correlations = {};
+    let worst = 0;
+    for (const pair of pairs) {
+      if (pair.i === i || pair.j === i) continue; // an effect is not aliased with itself
+      const r = dot(main[i], pair.column);
+      correlations[pair.label] = r;
+      worst = Math.max(worst, Math.abs(r));
+    }
+    return { effect: letter, worst, correlations };
+  });
+}
+
+/**
  * Box-Behnken design: every pair of factors is taken to its four corners while
  * the remaining factors sit at their centre. It needs only three levels per
  * factor and, unlike a central composite design, never visits a corner of the

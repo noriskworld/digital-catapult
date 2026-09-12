@@ -13,6 +13,10 @@ dist-ssr
 dist-standalone
 *.local
 
+# Quarto render output (source .qmd is tracked, rendered HTML/_files are not)
+course/quarto/*.html
+course/quarto/*_files/
+
 # standalone/digital-catapult.html is deliberately committed: it is the copy
 # people without npm download and open. See DEPLOYMENT.md.
 
