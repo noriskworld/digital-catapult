@@ -1,4 +1,4 @@
-<title>Catapult DOE Lectures</title>
+<title>Catapult DOE Lectures · unreplicated revision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -396,6 +396,7 @@ svg .grid { stroke: var(--line-soft); stroke-width: 1; }
   padding: 3px 11px; color: var(--ink-2); background: var(--surface);
 }
 .chip.on { border-color: var(--mean); color: var(--mean); background: var(--mean-soft); }
+.chip.a { border-color: var(--alarm); color: var(--alarm); background: var(--alarm-soft); }
 
 /* title slide */
 .title-slide { justify-content: center; }
@@ -505,14 +506,15 @@ body.hidenotes .notes { display: none; }
 
 <article class="item" data-part="0">
   <div class="holder"><section class="slide title-slide">
-    <div class="eyebrow"><span class="tag">Quality Engineering</span><span>Green Belt · Black Belt · Process Development</span></div>
-    <h1>Design of Experiments, <span>fired from a catapult</span></h1>
-    <p class="lede">Five factors, one machine, and a target you cannot hit by guessing. Three experiments take you from
-      thirty-two unknowns to a setting that lands on 10 metres — and stays there.</p>
+    <div class="eyebrow"><span class="tag a">Unreplicated revision</span><span>One shot per design point</span></div>
+    <h1>Design of Experiments, <span>with the replicates taken out</span></h1>
+    <p class="lede">The same five factors, the same machine, the same three experiments — fired once per setting
+      instead of three or fifteen. Every estimate survives. Almost nothing you would say about them does.</p>
     <div class="meta">
       <div><div class="l">Instrument</div><div class="v">Digital Catapult simulator</div></div>
       <div><div class="l">Exercises</div><div class="v">Screening → Full factorial → Box-Behnken</div></div>
-      <div><div class="l">Shots fired</div><div class="v">381 across four designs</div></div>
+      <div><div class="l">Companion</div><div class="v">course/instructor-guide-n1.md</div></div>
+      <div><div class="l">Shots fired</div><div class="v">71, against 381 replicated</div></div>
       <div><div class="l">Prerequisites</div><div class="v">Descriptive stats, reading an ANOVA table</div></div>
     </div>
   </section></div>
@@ -523,7 +525,7 @@ body.hidenotes .notes { display: none; }
     <p>Set expectations about what this course is <em>not</em>. It is not training in how to click through Minitab —
       software runs a factorial for you. The skill being taught is choosing which experiment to run, knowing what that
       choice makes invisible, and reading the result honestly.</p>
-    <p class="ask">Opening question to the room: "If I gave you 96 shots and five knobs, how would you spend them?"
+    <p class="ask">Opening question to the room: "If I gave you 67 shots and five knobs, how would you spend them?"
       Take three answers and write them on the board. Return to them in the closing slide.</p>
   </aside>
 </article>
@@ -635,19 +637,19 @@ body.hidenotes .notes { display: none; }
           <h4>Stage 1 · Screen</h4>
           <p><strong>Which factors matter at all?</strong></p>
           <p>Many factors, two levels, deliberately few runs. Accepts confounding as the price of cheapness.</p>
-          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 1 · 2<sup>5−2</sup> (8 runs) and Plackett–Burman (12 runs) · 60 shots</span></p>
+          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 1 · 2<sup>5−2</sup> (8 runs) and Plackett–Burman (12 runs) · 20 shots</span></p>
         </div>
         <div class="panel mean">
           <h4>Stage 2 · Characterise</h4>
           <p><strong>How do the survivors act together?</strong></p>
           <p>Fewer factors, all combinations. Buys clean interaction estimates and a curvature check.</p>
-          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 2 · 2<sup>5</sup> · 32 runs · 96 shots</span></p>
+          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 2 · 2<sup>5</sup> · 32 runs, then + 4 centre · 36 shots</span></p>
         </div>
         <div class="panel mean">
           <h4>Stage 3 · Optimise</h4>
           <p><strong>Where exactly is the setting I want?</strong></p>
           <p>Three levels, quadratic model, a target rather than a maximum — and variation as a second response.</p>
-          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 3 · Box-Behnken · 15 runs · 225 shots</span></p>
+          <p style="margin-bottom:0"><span class="m" style="color:var(--muted)">Exercise 3 · Box-Behnken · 15 runs · 15 shots</span></p>
         </div>
       </div>
       <div class="cols c2" style="margin-top:24px">
@@ -657,17 +659,17 @@ body.hidenotes .notes { display: none; }
             <thead><tr><th>After</th><th>Factors live</th><th>Model form</th><th class="n">Shots</th></tr></thead>
             <tbody>
               <tr><td>Start</td><td class="k">A B C D E</td><td>unknown</td><td class="n">—</td></tr>
-              <tr><td>Exercise 1</td><td class="k">A B C D <span style="color:var(--muted)">(E?)</span></td><td>main effects, confounded</td><td class="n">60</td></tr>
-              <tr><td>Exercise 2</td><td class="k">A B C <span style="color:var(--muted)">(D fixed)</span></td><td>main + 2-factor interactions</td><td class="n">96</td></tr>
-              <tr class="lead"><td>Exercise 3</td><td class="k">A B C</td><td>full quadratic</td><td class="n">225</td></tr>
+              <tr><td>Exercise 1</td><td class="k">A B <span style="color:var(--muted)">D (C? E?)</span></td><td>main effects, confounded</td><td class="n">20</td></tr>
+              <tr><td>Exercise 2</td><td class="k">A B C <span style="color:var(--muted)">(D fixed)</span></td><td>main + 2-factor interactions</td><td class="n">36</td></tr>
+              <tr class="lead"><td>Exercise 3</td><td class="k">A B C</td><td>quadratic mean only</td><td class="n">15</td></tr>
             </tbody>
           </table></div>
         </div>
         <div class="panel vary">
           <h4>Why not just run Exercise 3 first?</h4>
-          <p>A five-factor Box-Behnken is 46 runs. At the 15 replicates the variation model needs, that is
-            <strong>690 shots</strong> — three times the whole course — to map a space in which two of the five factors
-            turn out not to matter.</p>
+          <p>A five-factor Box-Behnken is 46 runs. Even fired once each that is <strong>46 shots</strong> to map a
+            space in which two of the five factors turn out not to matter — and it would still tell you nothing about
+            variation.</p>
           <p style="margin-bottom:0">Screening is not a lesser experiment. It is what makes the expensive one affordable.</p>
         </div>
       </div>
@@ -681,7 +683,8 @@ body.hidenotes .notes { display: none; }
       A screening design does not, and is not supposed to.</p>
     <p>Box's 25% rule is a heuristic, not a theorem, but it has the right shape: you do not know enough at the start to
       spend well, so buy information about where to spend before spending. Note that our course happens to land close
-      to it — 24 shots of an eventual 381 is 6%, and even Exercises 1 and 2 together are 41%.</p>
+      to it — 8 shots of an eventual 71 is 11%, and Exercises 1 and 2 together are 79%. The unreplicated course is
+      much more front-loaded, because the expensive back end is the part that needed the replicates.</p>
     <p class="ask">Ask them to predict now, before any data: which two of the five factors will turn out not to matter?
       Write the guesses down. Pull-back angle is the obvious guess for "matters most" and is correct; the group usually
       splits on pin elevation versus arm hole, and pin elevation is the one that dies.</p>
@@ -779,7 +782,7 @@ body.hidenotes .notes { display: none; }
       2b. Every piece of software reports one or the other and they rarely tell you which. Make the class state which
       one their tool gives before they compare anything to the answer key.</p>
     <p><strong>Percent contribution versus <em>p</em>.</strong> Plant this now because Exercise 2 will make it urgent:
-      with 96 shots, terms contributing 0.04% come out statistically significant. Significance answers "is it real?";
+      with 32 shots, terms contributing 0.27% come out statistically significant. Significance answers "is it real?";
       contribution answers "do I care?". Students who have only ever been taught <em>p</em> &lt; 0.05 find this
       genuinely destabilising, which is the point.</p>
     <p class="ask">Quick check before moving on: "A coded model gives b = 1.44 for AB. What is the AB effect, and what
@@ -963,9 +966,11 @@ body.hidenotes .notes { display: none; }
         </div>
         <div class="panel vary">
           <h4>Y₂ · Variation (m)</h4>
-          <p>The standard deviation of repeated shots at one setting. <strong>Not printed. You measure it.</strong></p>
-          <p style="margin-bottom:0">Fire <em>n</em> replicates, compute <em>s</em>. This is why results accumulate
-            across batches until you clear them, and why export is one row per shot rather than one row per setting.</p>
+          <p>The standard deviation of repeated shots at one setting. <strong>Not printed. You measure it — with
+            replicates.</strong></p>
+          <p style="margin-bottom:0">This revision fires one shot per setting, so <em>s</em> is never computable and
+            <strong>Y₂ does not exist anywhere in this course</strong>. Everything downstream of it goes too. Watch for
+            it as we go; it disappears quietly.</p>
         </div>
       </div>
       <div>
@@ -979,23 +984,25 @@ body.hidenotes .notes { display: none; }
         <div class="panel">
           <h4>Why the asymmetry matters</h4>
           <p style="margin-bottom:0">A mean over <em>n</em> shots has standard error σ/√n. A standard deviation is a far
-            noisier statistic at the same <em>n</em>. That single fact is why Exercises 1 and 2 run 3 replicates and
-            Exercise 3 runs <em class="hv">15</em>.</p>
+            noisier statistic at the same <em>n</em>. That single fact is why the replicated course runs 3 replicates
+            in Exercises 1 and 2 and <em class="hv">15</em> in Exercise 3 — and why <em class="hv">1</em> costs the
+            second response entirely while barely touching the first.</p>
         </div>
       </div>
     </div>
-    <div class="keyline v"><b>Take away</b><p>Two responses, two models, two different leaders. The gap between them is
-      where robust engineering lives — and it is the destination of this course.</p></div>
+    <div class="keyline a"><b>Take away</b><p>Two responses on paper, one measurable here. The gap between them is
+      where robust engineering lives, and this revision cannot reach it — which is the destination of this course.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">The "Predicted σ" trap is worth pre-empting hard. It is a genuinely useful column — it lets an
       instructor check a student's answer instantly — but a student who regresses on it has skipped the entire reason
       replication exists and will get a suspiciously clean variation model.</p>
-    <p>Foreshadow the destination without giving it away: tell them the mean model and the variation model will have
-      <em>different</em> dominant factors, and that this is what makes it possible to hold the mean on target while
-      cutting the spread. Do not yet say which factors.</p>
-    <p class="only"><b>Instructor only</b> — the ranking they will eventually find: mean is led by A at 38.4%, variation
-      by C at 42.7%. Hold this back until the Exercise 3 debrief.</p>
+    <p>Foreshadow the destination honestly: tell them the mean model and the variation model have <em>different</em>
+      dominant factors, that this is what makes it possible to hold the mean on target while cutting the spread — and
+      that this revision will not be able to show them the second model at all. Asking them to watch for the moment it
+      goes missing keeps Exercise 3 from feeling like an anticlimax.</p>
+    <p class="only"><b>Instructor only</b> — in the replicated course the mean is led by A at 38.4% and variation by C
+      at 42.7%. Hold it back until the Exercise 3 debrief, where you will have to supply it rather than derive it.</p>
   </aside>
 </article>
 
@@ -1186,7 +1193,7 @@ body.hidenotes .notes { display: none; }
             <dt>C · Bungee</dt><dd>3.0</dd>
             <dt>D · Arm hole</dt><dd>3.0</dd>
             <dt>E · Pin</dt><dd>2.25</dd>
-            <dt>Replicates</dt><dd>20</dd>
+            <dt>Replicates</dt><dd>1</dd>
             <dt>Seed</dt><dd>500</dd>
           </dl>
         </div>
@@ -1201,13 +1208,13 @@ body.hidenotes .notes { display: none; }
         </div>
       </div>
       <div>
-        <p><strong>Fire both, export, and compute the mean, <em>s</em>, and the coefficient of variation for each.</strong>
-          Then answer three questions before anyone touches a design.</p>
+        <p><strong>Fire both — one shot each — and try to compute the mean, <em>s</em>, and the coefficient of
+          variation.</strong> Get as far as you can, then answer three questions before anyone touches a design.</p>
         <div class="panel" style="margin-bottom:12px">
           <h4>Q0.1</h4>
           <p style="margin-bottom:0">How large a difference between two settings would you need to see before believing
             it is real? <span style="color:var(--muted)">Hint: the standard error of a mean of <em>n</em> shots is
-            s/√n.</span></p>
+            s/√n. Work out what that gives you here before you answer.</span></p>
         </div>
         <div class="panel" style="margin-bottom:12px">
           <h4>Q0.2</h4>
@@ -1221,8 +1228,8 @@ body.hidenotes .notes { display: none; }
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Timing</b><p>Ten minutes to fire and compute, twenty to argue about Q0.3. The argument is
-      the lab.</p></div>
+    <div class="keyline a"><b>Timing</b><p>Two minutes to fire, and the rest of the half hour on what you cannot
+      compute. The dead end is the lab.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Q0.3 is the most important question in the entire course. Do not let the room rush it. Students
@@ -1245,25 +1252,27 @@ body.hidenotes .notes { display: none; }
         <div class="tw"><table>
           <thead><tr><th></th><th class="n">Setting 1<br><span style="font-weight:400;text-transform:none;letter-spacing:0">160, 105, 3, 3, 2.25</span></th><th class="n">Setting 2<br><span style="font-weight:400;text-transform:none;letter-spacing:0">190, 105, 4.5, 3, 2.25</span></th></tr></thead>
           <tbody>
-            <tr><td>Mean distance</td><td class="n">8.558 m</td><td class="n">15.059 m</td></tr>
-            <tr class="lead"><td>Standard deviation <em>s</em></td><td class="n">0.2195 m</td><td class="n">0.3646 m</td></tr>
-            <tr><td>Coefficient of variation</td><td class="n">2.57%</td><td class="n">2.42%</td></tr>
-            <tr><td>Standard error of the mean</td><td class="n">0.049 m</td><td class="n">0.082 m</td></tr>
+            <tr><td>The shot</td><td class="n">8.930 m</td><td class="n">15.468 m</td></tr>
+            <tr class="flag"><td>Standard deviation <em>s</em></td><td class="n">—</td><td class="n">—</td></tr>
+            <tr class="flag"><td>Coefficient of variation</td><td class="n">—</td><td class="n">—</td></tr>
+            <tr class="flag"><td>Standard error of the mean</td><td class="n">—</td><td class="n">—</td></tr>
             <tr class="dim"><td>True σ <span style="font-size:11px">(instructor)</span></td><td class="n">0.1933 m</td><td class="n">0.3774 m</td></tr>
           </tbody>
         </table></div>
       </div>
       <div>
         <div class="panel mean" style="margin-bottom:12px">
-          <h4>A0.1 · The resolution of your eye</h4>
-          <p style="margin-bottom:0">With <em>s</em> ≈ 0.22 and <em>n</em> = 20, SE ≈ 0.05 m. A difference below about
-            <strong>0.14 m</strong> (roughly 2·√2·SE) is not distinguishable. "Any difference I can see on the ruler"
-            is the wrong answer.</p>
+          <h4>A0.1 · No answer exists</h4>
+          <p style="margin-bottom:0">The threshold is built from <em>s</em>, and one shot has no <em>s</em>. The two
+            numbers differ by <strong>6.538 m</strong>; that is an effect plus two draws of noise, and this data cannot
+            say how much of each. "Any difference I can see on the ruler" is now the <em>only</em> answer available,
+            and it is still the wrong one.</p>
         </div>
         <div class="panel vary" style="margin-bottom:12px">
-          <h4>A0.2 · σ is not constant</h4>
-          <p style="margin-bottom:0">It <strong>nearly doubles</strong> between the two settings. Variation is a
-            response in its own right, and any analysis assuming constant variance is on thin ice.</p>
+          <h4>A0.2 · σ nearly doubles, invisibly</h4>
+          <p style="margin-bottom:0">True σ goes from 0.193 m to 0.377 m between these two settings. <strong>Your
+            experiment cannot see that it moved at all.</strong> Everything Exercise 3 does with variation depends on
+            noticing this, and it is already gone.</p>
         </div>
         <div class="panel alarm">
           <h4>A0.3 · The whole course, in one line</h4>
@@ -1271,22 +1280,22 @@ body.hidenotes .notes { display: none; }
         </div>
       </div>
     </div>
-    <div class="keyline v"><b>Note the CV</b><p>2.57% versus 2.42% — nearly equal. σ scales roughly with distance here,
-      which is a hint about mechanism worth remembering when you model variation in Exercise 3.</p></div>
+    <div class="keyline a"><b>What one shot cost</b><p>Two shots instead of forty. Three of the five rows in that
+      table are empty, and the empty ones are the rows the last third of the course is built on.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">Draw attention to the coefficient of variation row. σ nearly doubles, but CV barely moves — so to a
-      first approximation variation scales with distance. Students often stop there and conclude that variation is
-      simply "2.5% of wherever you aim", which would make robust optimisation impossible.</p>
-    <p>It is <em>almost</em> true and importantly false, and Exercise 3 is where the falsity earns its keep: at a fixed
-      10 m target, achievable σ ranges from about 0.18 m to 0.29 m depending on how you get there. Plant the near-miss
-      now so the later finding is a genuine surprise rather than a formality.</p>
-    <p>The true-σ row is from the simulator's delta-method estimator, which agrees with Monte Carlo to within 0.3%.
-      Show it or hide it as you prefer — showing it makes the point that <em>s</em> from 20 shots is itself a noisy
-      estimate, which sets up Exercise 3's replication argument nicely.</p>
-    <p class="ask">Ask: "Setting 2 throws nearly twice as far and scatters nearly twice as much. Is it a worse setting?"
-      The answer is that the question is malformed until you say what you are aiming at — which is the transition into
-      target-based thinking.</p>
+    <p class="say">Do not rush past the empty cells. Ask the room to fill them in and let them discover that they
+      cannot. A standard deviation needs at least two observations; there is exactly one. This is not a small
+      <em>s</em>, or a noisy estimate of <em>s</em> — the quantity does not exist in this data.</p>
+    <p>Then show the true-σ row, which is the simulator's delta-method estimate and is instructor-only knowledge. σ
+      nearly doubles between these two settings, from 0.193 m to 0.377 m. The machine is behaving exactly as it did in
+      the replicated course. Only the instrument changed.</p>
+    <p>The sentence to land: <strong>replication is not how you get a better number. It is how you find out that
+      there is a second question.</strong> Variation is a response in its own right, and an unreplicated design cannot
+      ask about it at all.</p>
+    <p class="ask">Ask: "Setting 2 throws nearly twice as far. Is it a worse setting?" In the replicated course this
+      opens onto target-based thinking. Here, let the room notice that they have no basis for an answer, and keep the
+      question open until Exercise 3, where it stays unanswered.</p>
   </aside>
 </article>
 
@@ -1449,10 +1458,10 @@ body.hidenotes .notes { display: none; }
           <header>Simulator settings</header>
           <dl>
             <dt>Load design</dt><dd>Screening — 2^(5-2) res III (8 runs)</dd>
-            <dt>Replicates</dt><dd>3</dd>
+            <dt>Replicates</dt><dd>1</dd>
             <dt>Seed</dt><dd>1001</dd>
             <dt>Noise</dt><dd>1× — Normal</dd>
-            <dt>Total shots</dt><dd>24</dd>
+            <dt>Total shots</dt><dd>8</dd>
             <dt>Export</dt><dd>CSV, one row per shot</dd>
           </dl>
         </div>
@@ -1465,14 +1474,15 @@ body.hidenotes .notes { display: none; }
       <div>
         <div class="panel mean" style="margin-bottom:12px">
           <h4>Fit</h4>
-          <p style="margin-bottom:0">A <strong>main-effects-only</strong> model to the <strong>24 individual shots</strong>
-            — not to the 8 run means. Record each effect, its <em>p</em>-value, and its percent contribution.</p>
+          <p style="margin-bottom:0">A <strong>main-effects-only</strong> model to the <strong>8 shots</strong>. With
+            one shot per run there is no distinction between shots and run means any more. Record each effect, its
+            <em>p</em>-value, and its percent contribution.</p>
         </div>
         <div class="panel" style="margin-bottom:12px">
-          <h4>Why individual shots?</h4>
-          <p style="margin-bottom:0">Eight runs and five factors leaves <strong>two</strong> degrees of freedom on run
-            means — nothing to test against. Fitting the 24 shots supplies pure error from the replicates, which is
-            what puts a denominator under every <em>F</em> ratio.</p>
+          <h4>Two degrees of freedom</h4>
+          <p style="margin-bottom:0">Eight observations, six parameters. Every <em>F</em> ratio you are about to read
+            has a denominator estimated from <strong>two numbers</strong>. In the replicated course the same design
+            supplies 18. Watch what that does to the <em>p</em> column.</p>
         </div>
         <div class="panel vary">
           <h4>Q1.6 to think about while it runs</h4>
@@ -1498,7 +1508,7 @@ body.hidenotes .notes { display: none; }
 
 <article class="item" data-part="2">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 1</span><span>Results · seed 1001 · 24 shots</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 1</span><span>Results · seed 1001 · 8 shots</span></div>
     <h2 class="t">What eight runs bought</h2>
     <div class="body cols c-wide-l">
       <div>
@@ -1507,59 +1517,65 @@ body.hidenotes .notes { display: none; }
           <svg viewBox="0 0 560 178" role="img" aria-label="Pareto of screening effects: A 54.8 percent, D 22.7, B 13.5, C 5.3, E 2.5 percent of total sum of squares.">
             <line x1="36" y1="12" x2="36" y2="164" class="ax"/>
             <text class="lbl" x="0" y="30">A</text>
-            <rect x="36" y="18" width="365" height="18" rx="3" fill="var(--mean)"/>
-            <text class="val" x="409" y="31">54.8%</text>
+            <rect x="36" y="18" width="359" height="18" rx="3" fill="var(--mean)"/>
+            <text class="val" x="403" y="31">54.0%</text>
             <text class="lbl" x="0" y="60">D</text>
-            <rect x="36" y="48" width="151" height="18" rx="3" fill="var(--mean)"/>
-            <text class="val" x="195" y="61">22.7%</text>
+            <rect x="36" y="48" width="153" height="18" rx="3" fill="var(--mean)"/>
+            <text class="val" x="197" y="61">23.0%</text>
             <text class="lbl" x="0" y="90">B</text>
-            <rect x="36" y="78" width="90" height="18" rx="3" fill="var(--mean)"/>
-            <text class="val" x="134" y="91">13.5%</text>
+            <rect x="36" y="78" width="88" height="18" rx="3" fill="var(--mean)"/>
+            <text class="val" x="132" y="91">13.2%</text>
             <text class="lbl" x="0" y="120">C</text>
-            <rect x="36" y="108" width="35" height="18" rx="3" fill="var(--mean)"/>
-            <text class="val" x="79" y="121">5.3%</text>
+            <rect x="36" y="108" width="39" height="18" rx="3" fill="var(--alarm)" fill-opacity=".45" stroke="var(--alarm)"/>
+            <text class="val" x="83" y="121" fill="var(--alarm)">5.8%</text>
             <text class="lbl" x="0" y="150">E</text>
-            <rect x="36" y="138" width="16" height="18" rx="3" fill="var(--mean)"/>
-            <text class="val" x="60" y="151">2.5%</text>
+            <rect x="36" y="138" width="18" height="18" rx="3" fill="var(--alarm)" fill-opacity=".45" stroke="var(--alarm)"/>
+            <text class="val" x="62" y="151" fill="var(--alarm)">2.8%</text>
           </svg>
-          <figcaption>Every factor clears significance. Contribution, not <em>p</em>, is what separates them.</figcaption>
+          <figcaption>The contributions are almost identical to the replicated run. The outlined bars are the two that
+            no longer clear significance.</figcaption>
         </figure>
       </div>
       <div>
         <div class="tw"><table>
           <thead><tr><th class="n">Rank</th><th>Effect</th><th class="n">Estimate (m)</th><th class="n"><em>p</em></th></tr></thead>
           <tbody>
-            <tr class="lead"><td class="n">1</td><td class="k">A</td><td class="n">8.064</td><td class="n">1.8 × 10⁻¹⁶</td></tr>
-            <tr class="flag"><td class="n">2</td><td class="k">D</td><td class="n">5.187</td><td class="n">4.0 × 10⁻¹³</td></tr>
-            <tr><td class="n">3</td><td class="k">B</td><td class="n">4.007</td><td class="n">3.1 × 10⁻¹¹</td></tr>
-            <tr><td class="n">4</td><td class="k">C</td><td class="n">2.503</td><td class="n">5.3 × 10⁻⁸</td></tr>
-            <tr><td class="n">5</td><td class="k">E</td><td class="n">1.709</td><td class="n">9.8 × 10⁻⁶</td></tr>
+            <tr class="lead"><td class="n">1</td><td class="k">A</td><td class="n">7.966</td><td class="n">0.0116</td></tr>
+            <tr class="flag"><td class="n">2</td><td class="k">D</td><td class="n">5.203</td><td class="n">0.0265</td></tr>
+            <tr><td class="n">3</td><td class="k">B</td><td class="n">3.939</td><td class="n">0.0450</td></tr>
+            <tr class="flag"><td class="n">4</td><td class="k">C</td><td class="n">2.612</td><td class="n">0.0944</td></tr>
+            <tr class="flag"><td class="n">5</td><td class="k">E</td><td class="n">1.804</td><td class="n">0.1723</td></tr>
           </tbody>
         </table></div>
         <div class="stat" style="margin-top:16px">
-          <div><div class="v mean">0.988</div><div class="l">R²</div></div>
-          <div><div class="v">24</div><div class="l">Shots</div></div>
-          <div><div class="v">5 / 5</div><div class="l">Significant</div></div>
+          <div><div class="v mean">0.987</div><div class="l">R²</div></div>
+          <div><div class="v">8</div><div class="l">Shots</div></div>
+          <div><div class="v alarm">3 / 5</div><div class="l">Significant</div></div>
+          <div><div class="v alarm">2</div><div class="l">Residual df</div></div>
         </div>
         <div class="panel mean" style="margin-top:16px">
-          <h4>The apparent conclusion</h4>
-          <p style="margin-bottom:0">Pull-back dominates. Arm hole is a strong second. Pin elevation is the clear drop
-            candidate at 2.5%. <strong>Four of these five statements survive Exercise 2. One does not.</strong></p>
+          <h4>The estimates held. The evidence did not.</h4>
+          <p style="margin-bottom:0">Every effect is within a few percent of what 24 shots reported. But C now misses
+            at <em>p</em> = 0.094 — and C is real, the third largest thing on this machine. <strong>A team following
+            the usual rule drops bungee position here.</strong> It turns out to dominate variation.</p>
         </div>
       </div>
     </div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">Let the room enjoy this for a minute. R² of 0.988, every factor significant at absurd
-      <em>p</em>-values, a clean ranking, 24 shots. It looks like a completely successful experiment, and by the
-      standards most people apply to their own work, it is.</p>
-    <p>Then start applying pressure. Ask what the alias table says the D column contains. Ask whether anything in this
-      output — any number on this slide — could distinguish D from AB. Nothing can. The design has no such arithmetic in
-      it, and it produced a confident answer anyway.</p>
-    <p>Do not reveal yet which of the five statements fails. Let them predict from the alias table. The strong students
-      will nominate D, because it is the row with the largest plausible interaction attached.</p>
-    <p class="ask">Q1.4 answer: A dominates; E is the clear drop candidate at 2.5%. Q1.5 answer: the apparent D effect
-      is inseparable from AB — and if AB is real, part of what looks like "D" here is not D at all.</p>
+    <p class="say">Put the two tables side by side — this one and the replicated one — and ask what changed. The
+      <em>estimates</em> barely moved: 7.97 against 8.06, 5.20 against 5.19, 3.94 against 4.01. Eight shots estimated
+      the effects about as well as twenty-four did. Students expect the opposite and need to see it.</p>
+    <p>What collapsed is the <em>p</em> column, from 10⁻¹⁶ to 0.012 at the top and from significant to not at the
+      bottom. Point at the residual df tile: two. Every <em>p</em> on this slide is judged against a spread estimated
+      from two numbers.</p>
+    <p>Then the sting, and it is worth writing on the board: <strong>the factor this design fails to find is the one
+      that turns out to control variation.</strong> C misses at 0.094, a team drops it, and Exercise 3's entire
+      robustness result was living in that column.</p>
+    <p>The alias argument is unchanged and still applies: nothing on this slide can distinguish D from AB. An
+      unreplicated design has the same blind spot as a replicated one, plus a new one.</p>
+    <p class="ask">Q1.4 answer: A dominates; E is still the drop candidate at 2.8%, but so is C now, and that is the
+      mistake. Q1.5 answer: the apparent D effect is inseparable from AB.</p>
   </aside>
 </article>
 
@@ -1662,10 +1678,10 @@ then add one run with every factor low.</span>
           <header>Simulator settings</header>
           <dl>
             <dt>Load design</dt><dd>Screening — Plackett-Burman (12 runs)</dd>
-            <dt>Replicates</dt><dd>3</dd>
+            <dt>Replicates</dt><dd>1</dd>
             <dt>Seed</dt><dd>1201</dd>
             <dt>Noise</dt><dd>1× — Normal</dd>
-            <dt>Total shots</dt><dd>36</dd>
+            <dt>Total shots</dt><dd>12</dd>
             <dt>Levels</dt><dd>as Exercise 1</dd>
           </dl>
         </div>
@@ -1772,8 +1788,8 @@ then add one run with every factor low.</span>
       whether the interactions in your process are few and large, or many and moderate.</p>
     <p>Note the partial cancellation, because it is the genuinely surprising property. Six terms at plus or minus a
       third do not add up to twice the damage of one term at full weight; with mixed signs they substantially cancel.
-      We will see exactly that happen on the catapult in two slides — the PB estimate of D is off by 0.79 m where the
-      regular design was off by 2.88 m.</p>
+      We will see exactly that happen on the catapult in two slides — the PB estimate of D is off by 1.00 m where the
+      regular design was off by 2.76 m.</p>
     <p class="only"><b>Instructor only</b> — the one-third figure is specific to <em>N</em> = 12. For a 20-run
       Plackett–Burman the correlations are ±1/5, for 24-run ±1/3 and ±1/6 in a mixed pattern. Larger designs dilute the
       bias further. If asked, the general statement is that non-regular designs spread the aliasing across many terms
@@ -1783,24 +1799,24 @@ then add one run with every factor low.</span>
 
 <article class="item" data-part="2">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 1b</span><span>Results · seed 1201 · 36 shots</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 1b</span><span>Results · seed 1201 · 12 shots</span></div>
     <h2 class="t">What twelve runs bought — and the spare columns</h2>
     <div class="body cols c-wide-l">
       <div>
         <div class="tw"><table>
           <thead><tr><th>Effect</th><th class="n">Estimate (m)</th><th class="n">%</th><th class="n"><em>p</em></th></tr></thead>
           <tbody>
-            <tr class="lead"><td class="k">A</td><td class="n">7.115</td><td class="n">79.55</td><td class="n">1.2 × 10⁻¹⁵</td></tr>
-            <tr><td class="k">B</td><td class="n">1.806</td><td class="n">5.13</td><td class="n">5.6 × 10⁻⁴</td></tr>
-            <tr><td class="k">D</td><td class="n">1.317</td><td class="n">2.72</td><td class="n">8.6 × 10⁻³</td></tr>
-            <tr><td class="k">C</td><td class="n">1.118</td><td class="n">1.96</td><td class="n">0.023</td></tr>
-            <tr class="flag"><td class="k">E</td><td class="n">−0.447</td><td class="n">0.31</td><td class="n">0.348</td></tr>
+            <tr class="lead"><td class="k">A</td><td class="n">7.165</td><td class="n">77.65</td><td class="n">0.0007</td></tr>
+            <tr class="flag"><td class="k">B</td><td class="n">1.788</td><td class="n">4.83</td><td class="n">0.162</td></tr>
+            <tr class="flag"><td class="k">D</td><td class="n">1.448</td><td class="n">3.17</td><td class="n">0.244</td></tr>
+            <tr class="flag"><td class="k">C</td><td class="n">1.253</td><td class="n">2.37</td><td class="n">0.307</td></tr>
+            <tr class="flag"><td class="k">E</td><td class="n">−0.601</td><td class="n">0.55</td><td class="n">0.611</td></tr>
           </tbody>
         </table></div>
         <div class="stat" style="margin-top:14px">
-          <div><div class="v mean">0.897</div><div class="l">R²</div></div>
-          <div><div class="v">1.404</div><div class="l">Resid SD (m)</div></div>
-          <div><div class="v alarm">−</div><div class="l">Sign of E</div></div>
+          <div><div class="v mean">0.886</div><div class="l">R²</div></div>
+          <div><div class="v">1.943</div><div class="l">Resid SD (m)</div></div>
+          <div><div class="v alarm">1 / 5</div><div class="l">Significant</div></div>
         </div>
       </div>
       <div>
@@ -1810,39 +1826,42 @@ then add one run with every factor low.</span>
             report is the design's own noise-plus-bias floor.</p>
           <div class="tw"><table>
             <tbody>
-              <tr><td class="k" style="width:58%">Spare column effects (m)</td><td class="n">0.24 · −0.92 · −1.66<br>0.64 · 0.94 · −1.25</td></tr>
-              <tr class="flag"><td><strong>Largest spare |effect|</strong></td><td class="n"><strong>1.66 m</strong></td></tr>
+              <tr><td class="k" style="width:58%">Spare column effects (m)</td><td class="n">0.24 · −1.07 · −1.75<br>0.64 · 0.99 · −1.37</td></tr>
+              <tr class="flag"><td><strong>Largest spare |effect|</strong></td><td class="n"><strong>1.75 m</strong></td></tr>
             </tbody>
           </table></div>
         </div>
         <div class="panel alarm">
-          <h4>Read that honestly</h4>
-          <p style="margin-bottom:0">A column measuring nothing produced 1.66 m. So <strong>only A, at 7.12 m, clearly
-            stands above the floor.</strong> B, C and D are all inside the range that empty columns reach — statistically
-            significant, and not distinguishable from the design's own contamination.</p>
+          <h4>This time they agree — and that is worse</h4>
+          <p style="margin-bottom:0">A column measuring nothing produced 1.75 m, so <strong>only A stands above the
+            floor</strong> — and the <em>p</em>-values now say the same. They agree because the experiment has stopped
+            being able to see B, C and D at all.</p>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Take away</b><p>The spare columns are a free, assumption-light error yardstick — and here
-      they contradict the <em>p</em>-values. Believe the yardstick.</p></div>
+    <div class="keyline a"><b>Take away</b><p>Twelve shots, five factors, one detection. Agreement between two
+      diagnostics means nothing when both have run out of information.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">The spare-column technique is the best practical reason to teach Plackett–Burman, and most courses
       skip it. Any column not assigned to a factor still gets an estimate. Since it measures nothing, its estimate is a
       direct sample of how much noise and unmodelled interaction this design manufactures out of thin air.</p>
-    <p>Here that floor is 1.66 m — and it is brutally informative. Three factors that pass a significance test at
-      <em>p</em> &lt; 0.05 sit <em>below</em> the largest empty column. The <em>p</em>-values are computed against pure
-      error from replication, which knows about shot-to-shot noise but knows nothing about aliasing bias. The spare
-      columns feel both. That is why they disagree, and why the spare columns are the more honest signal.</p>
-    <p>Note the E result and let it land. The regular design said E = +1.709, highly significant. This design says
-      E = −0.447, not significant, <strong>and the wrong sign</strong>. Two resolution III screens, two different wrong
-      answers about the same factor.</p>
+    <p>Here that floor is 1.75 m, and the interesting thing is what it agrees with. In the replicated course three
+      factors passed a significance test while sitting <em>below</em> the largest empty column, and the spare columns
+      were right. At one shot per run those same three factors do not pass the test either. The disagreement has gone
+      — not because the yardstick improved, but because the <em>p</em>-values got as pessimistic as it was.</p>
+    <p>Say the uncomfortable part out loud: two diagnostics agreeing is not confirmation. One of them is measuring
+      noise-plus-bias and the other is measuring a residual with six degrees of freedom. They happen to arrive at the
+      same shrug.</p>
+    <p>Note the E result and let it land. The regular design said E = +1.804. This design says E = −0.601, <strong>the
+      wrong sign</strong>. Two resolution III screens, two different wrong answers about the same factor, and neither
+      has the evidence to argue.</p>
     <p class="ask">Ask: "What would you do next, having seen the spare columns?" The good answer is add replicates or
       runs before trusting anything below A — which is exactly the judgement Exercise 2 makes for them.</p>
-    <p class="only"><b>Instructor only</b> — true effects are A 7.42, B 2.75, D 2.35, C 2.07, E 0.33. So B, C and D
-      <em>are</em> real; the spare-column floor is being appropriately cautious rather than correct in detail. Worth
-      saying at the Exercise 2 debrief: a yardstick that says "I cannot tell" when the truth is "small but real" has
-      behaved well, not badly.</p>
+    <p class="only"><b>Instructor only</b> — true effects are A 7.47, B 2.74, D 2.29, C 2.12, E 0.37. So B, C and D
+      <em>are</em> real, and at 12 shots neither diagnostic can see them. A yardstick that says "I cannot tell" when
+      the truth is "small but real" has behaved well; a <em>p</em>-value that says the same thing by accident has
+      not.</p>
   </aside>
 </article>
 
@@ -1856,17 +1875,17 @@ then add one run with every factor low.</span>
       <div class="tw"><table>
         <thead><tr>
           <th>Effect</th>
-          <th class="n">2<sup>5−2</sup> res III<br><span style="font-weight:400;text-transform:none;letter-spacing:0">8 runs · 24 shots</span></th>
-          <th class="n">Plackett–Burman<br><span style="font-weight:400;text-transform:none;letter-spacing:0">12 runs · 36 shots</span></th>
+          <th class="n">2<sup>5−2</sup> res III<br><span style="font-weight:400;text-transform:none;letter-spacing:0">8 runs · 8 shots</span></th>
+          <th class="n">Plackett–Burman<br><span style="font-weight:400;text-transform:none;letter-spacing:0">12 runs · 12 shots</span></th>
           <th class="n">Disagreement</th>
           <th>Same conclusion?</th>
         </tr></thead>
         <tbody>
-          <tr class="lead"><td class="k">A</td><td class="n">8.064</td><td class="n">7.115</td><td class="n">0.95 m</td><td>Yes — dominant either way</td></tr>
-          <tr><td class="k">B</td><td class="n">4.007</td><td class="n">1.806</td><td class="n">2.20 m</td><td>Rank 3 vs rank 2</td></tr>
-          <tr><td class="k">C</td><td class="n">2.503</td><td class="n">1.118</td><td class="n">1.39 m</td><td>Rank 4 both</td></tr>
-          <tr class="flag"><td class="k">D</td><td class="n">5.187</td><td class="n">1.317</td><td class="n">3.87 m</td><td><strong>No</strong> — rank 2 vs rank 3</td></tr>
-          <tr class="flag"><td class="k">E</td><td class="n">1.709</td><td class="n">−0.447</td><td class="n">2.16 m</td><td><strong>No</strong> — opposite signs</td></tr>
+          <tr class="lead"><td class="k">A</td><td class="n">7.966</td><td class="n">7.165</td><td class="n">0.80 m</td><td>Yes — dominant either way</td></tr>
+          <tr><td class="k">B</td><td class="n">3.939</td><td class="n">1.788</td><td class="n">2.15 m</td><td>Rank 3 vs rank 2</td></tr>
+          <tr><td class="k">C</td><td class="n">2.612</td><td class="n">1.253</td><td class="n">1.36 m</td><td>Rank 4 vs rank 4</td></tr>
+          <tr class="flag"><td class="k">D</td><td class="n">5.203</td><td class="n">1.448</td><td class="n">3.76 m</td><td><strong>No</strong> — rank 2 vs rank 3</td></tr>
+          <tr class="flag"><td class="k">E</td><td class="n">1.804</td><td class="n">−0.601</td><td class="n">2.41 m</td><td><strong>No</strong> — opposite signs</td></tr>
         </tbody>
       </table></div>
       <div class="cols c3" style="margin-top:20px">
@@ -1925,7 +1944,7 @@ then add one run with every factor low.</span>
           <li><strong>A drop decision.</strong> Something contributing 2.5% is a defensible candidate to fix and stop
             studying.</li>
           <li><strong>A pure-error estimate</strong>, from replication, independent of the model.</li>
-          <li><strong>Enormous efficiency.</strong> Five factors triaged in 24 shots — a quarter of what the next
+          <li><strong>Enormous efficiency.</strong> Five factors triaged in 8 shots — a quarter of what the next
             exercise costs.</li>
         </ul>
       </div>
@@ -1965,21 +1984,25 @@ then add one run with every factor low.</span>
 <article class="item" data-part="3">
   <div class="holder"><section class="slide sec">
     <div class="n">03</div>
-    <h2>Exercise 2 · Full factorial</h2>
-    <p>Every combination of every factor. Nothing aliased with anything. The most informative two-level experiment
-      available — and a chance to check exactly how wrong the cheap one was.</p>
+    <h2>Exercise 2 · Full factorial, twice</h2>
+    <p>Every combination of every factor. Nothing aliased with anything. Run it bare, find what it cannot tell you —
+      then add four runs at the centre and watch two whole diagnostics appear.</p>
     <div class="agenda chips">
-      <span class="chip on">2<sup>5</sup> · 32 runs · 96 shots</span>
-      <span class="chip on">All 2-factor interactions</span>
-      <span class="chip on">Seed 4004</span>
+      <span class="chip on">2a · 2<sup>5</sup> · 32 runs · 32 shots</span>
+      <span class="chip on">2b · the same, + 4 centre runs · 36 shots</span>
+      <span class="chip on">Seed 4004 for both</span>
       <span class="chip on">Alias reconciliation</span>
-      <span class="chip on">75 min</span>
+      <span class="chip on">90 min</span>
     </div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p>This exercise carries the intellectual centre of the course: the reconciliation slide, where the aliasing
       arithmetic they did on paper in Exercise 1 is checked numerically against reality and turns out to be right to
       within sampling error. Budget time to sit on that slide.</p>
+    <p><strong>Run 2a and 2b as one session with a deliberate break between them.</strong> Finish 2a at the slide that
+      says the model cannot be tested, let the room sit with it, and only then reveal that the fix costs four runs.
+      The centre runs are appended <em>after</em> the factorial block, so 2b's 32 corner shots are the identical
+      numbers from 2a — the comparison has no sampling difference in it at all.</p>
     <p>If your class is short of time, the half-fraction 2<sup>5−1</sup> resolution V design (16 runs, seed 2002)
       reaches the same conclusions for half the shots, and the workbook's Lab 2 covers it. The full factorial is worth
       the extra runs here because it lets you show reconciliation against an <em>unaliased</em> truth rather than
@@ -1989,7 +2012,7 @@ then add one run with every factor low.</span>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span>Why pay four times as much</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 2a</span><span>Why pay four times as much</span></div>
     <h2 class="t sm">32 runs, and every column means one thing</h2>
     <div class="body cols c-wide-r">
       <div>
@@ -2054,7 +2077,7 @@ then add one run with every factor low.</span>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span>Run card</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 2a</span><span>Run card</span></div>
     <h2 class="t">Fire it</h2>
     <div class="body cols c-wide-r">
       <div>
@@ -2062,10 +2085,10 @@ then add one run with every factor low.</span>
           <header>Simulator settings</header>
           <dl>
             <dt>Load design</dt><dd>Full factorial 2^5 (32 runs)</dd>
-            <dt>Replicates</dt><dd>3</dd>
+            <dt>Replicates</dt><dd>1</dd>
             <dt>Seed</dt><dd>4004</dd>
             <dt>Noise</dt><dd>1× — Normal</dd>
-            <dt>Total shots</dt><dd>96</dd>
+            <dt>Total shots</dt><dd>32</dd>
             <dt>Levels</dt><dd>as Exercise 1</dd>
           </dl>
         </div>
@@ -2083,7 +2106,7 @@ then add one run with every factor low.</span>
         </div>
         <div class="panel vary" style="margin-bottom:12px">
           <h4>Then, deliberately, fit it wrong</h4>
-          <p style="margin-bottom:0">Fit a <strong>second</strong> model to the same 96 shots with main effects only.
+          <p style="margin-bottom:0">Fit a <strong>second</strong> model to the same 32 shots with main effects only.
             Keep both. Comparing them is the most instructive thing you will do today.</p>
         </div>
         <div class="panel">
@@ -2102,14 +2125,14 @@ then add one run with every factor low.</span>
     <p>Insist on both fits. Students resist the main-effects-only model because they already know it is wrong, and
       fitting a model you know to be wrong feels like busywork. It is not: it produces the single most persuasive
       number in the course, and they will not believe it unless they generate it themselves.</p>
-    <p>96 shots takes a noticeable moment to animate. Use the time to ask the room to commit, out loud, to a prediction
-      for the D effect. Exercise 1 said 5.187. Anyone who trusts the alias table should predict substantially lower.</p>
+    <p>32 shots animates quickly. Use the pause to ask the room to commit, out loud, to a prediction for the D
+      effect. Exercise 1 said 5.203. Anyone who trusts the alias table should predict substantially lower.</p>
   </aside>
 </article>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span>Results · seed 4004 · 96 shots</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 2a</span><span>Results · seed 4004 · 32 shots</span></div>
     <h2 class="t">Fifteen terms, nothing confounded</h2>
     <div class="body cols c-wide-l">
       <div>
@@ -2118,20 +2141,20 @@ then add one run with every factor low.</span>
             <span><i style="background:var(--mean)"></i>Main effect</span>
             <span><i style="background:var(--mean);opacity:.42;outline:1px solid var(--mean)"></i>Two-factor interaction</span>
           </div>
-          <svg viewBox="0 0 560 270" role="img" aria-label="Pareto of full factorial effects: A 64.8 percent, then interaction AB 9.8, B 8.9, D 6.5, C 5.1, AD 1.7, AC 1.3, and the rest below one percent.">
+          <svg viewBox="0 0 560 270" role="img" aria-label="Pareto of full factorial effects at one shot per run: A 65.6 percent, then interaction AB 8.3, B 7.9, D 6.9, C 5.9, AD 1.8, AC 1.7, and the rest below one percent.">
             <line x1="42" y1="8" x2="42" y2="256" class="ax"/>
-            <text class="lbl" x="0" y="21">A</text><rect x="42" y="9" width="370" height="15" rx="3" fill="var(--mean)"/><text class="val" x="420" y="21">64.8%</text>
-            <text class="lbl" x="0" y="43">AB</text><rect x="42" y="31" width="56" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="106" y="43">9.8%</text>
-            <text class="lbl" x="0" y="65">B</text><rect x="42" y="53" width="51" height="15" rx="3" fill="var(--mean)"/><text class="val" x="101" y="65">8.9%</text>
-            <text class="lbl" x="0" y="87">D</text><rect x="42" y="75" width="37" height="15" rx="3" fill="var(--mean)"/><text class="val" x="87" y="87">6.5%</text>
-            <text class="lbl" x="0" y="109">C</text><rect x="42" y="97" width="29" height="15" rx="3" fill="var(--mean)"/><text class="val" x="79" y="109">5.1%</text>
-            <text class="lbl" x="0" y="131">AD</text><rect x="42" y="119" width="10" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="60" y="131">1.7%</text>
-            <text class="lbl" x="0" y="153">AC</text><rect x="42" y="141" width="8" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="58" y="153">1.3%</text>
-            <text class="lbl" x="0" y="175">BC</text><rect x="42" y="163" width="3" height="15" rx="1.5" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="53" y="175">0.51%</text>
-            <text class="lbl" x="0" y="197">BD</text><rect x="42" y="185" width="2" height="15" rx="1" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="52" y="197">0.28%</text>
-            <text class="lbl" x="0" y="219">AE</text><rect x="42" y="207" width="1.2" height="15" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="52" y="219">0.15%</text>
-            <text class="lbl" x="0" y="241">E</text><rect x="42" y="229" width="1" height="15" fill="var(--mean)"/><text class="val" x="52" y="241">0.13%</text>
-            <text class="lbl" x="42" y="264">CD 0.11% · BE 0.04% · CE and DE ≈ 0.00%</text>
+            <text class="lbl" x="0" y="21">A</text><rect x="42" y="9" width="370" height="15" rx="3" fill="var(--mean)"/><text class="val" x="420" y="21">65.6%</text>
+            <text class="lbl" x="0" y="43">AB</text><rect x="42" y="31" width="47" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="97" y="43">8.3%</text>
+            <text class="lbl" x="0" y="65">B</text><rect x="42" y="53" width="45" height="15" rx="3" fill="var(--mean)"/><text class="val" x="95" y="65">7.9%</text>
+            <text class="lbl" x="0" y="87">D</text><rect x="42" y="75" width="39" height="15" rx="3" fill="var(--mean)"/><text class="val" x="89" y="87">6.9%</text>
+            <text class="lbl" x="0" y="109">C</text><rect x="42" y="97" width="33" height="15" rx="3" fill="var(--mean)"/><text class="val" x="83" y="109">5.9%</text>
+            <text class="lbl" x="0" y="131">AD</text><rect x="42" y="119" width="10" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="60" y="131">1.8%</text>
+            <text class="lbl" x="0" y="153">AC</text><rect x="42" y="141" width="9" height="15" rx="3" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="59" y="153">1.7%</text>
+            <text class="lbl" x="0" y="175">BC</text><rect x="42" y="163" width="2" height="15" rx="1" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="52" y="175">0.37%</text>
+            <text class="lbl" x="0" y="197">E</text><rect x="42" y="185" width="1.5" height="15" fill="var(--mean)"/><text class="val" x="52" y="197">0.27%</text>
+            <text class="lbl" x="0" y="219">BD</text><rect x="42" y="207" width="1.2" height="15" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="52" y="219">0.21%</text>
+            <text class="lbl" x="0" y="241">AE</text><rect x="42" y="229" width="1" height="15" fill="var(--mean)" fill-opacity=".42" stroke="var(--mean)"/><text class="val" x="52" y="241">0.17%</text>
+            <text class="lbl" x="42" y="264">CD 0.13% · CE 0.03% · BE and DE ≈ 0.00%</text>
           </svg>
         </figure>
       </div>
@@ -2139,20 +2162,20 @@ then add one run with every factor low.</span>
         <div class="tw"><table>
           <thead><tr><th>Term</th><th class="n">Effect (m)</th><th class="n">%</th></tr></thead>
           <tbody>
-            <tr class="lead"><td class="k">A</td><td class="n">7.422</td><td class="n">64.77</td></tr>
-            <tr class="lead"><td class="k">AB</td><td class="n">2.880</td><td class="n">9.75</td></tr>
-            <tr><td class="k">B</td><td class="n">2.754</td><td class="n">8.92</td></tr>
-            <tr><td class="k">D</td><td class="n">2.348</td><td class="n">6.48</td></tr>
-            <tr><td class="k">C</td><td class="n">2.073</td><td class="n">5.05</td></tr>
-            <tr><td class="k">AD</td><td class="n">1.188</td><td class="n">1.66</td></tr>
-            <tr><td class="k">AC</td><td class="n">1.063</td><td class="n">1.33</td></tr>
-            <tr class="dim"><td class="k">E</td><td class="n">0.326</td><td class="n">0.13</td></tr>
+            <tr class="lead"><td class="k">A</td><td class="n">7.531</td><td class="n">65.61</td></tr>
+            <tr class="lead"><td class="k">AB</td><td class="n">2.685</td><td class="n">8.34</td></tr>
+            <tr><td class="k">B</td><td class="n">2.619</td><td class="n">7.94</td></tr>
+            <tr><td class="k">D</td><td class="n">2.447</td><td class="n">6.93</td></tr>
+            <tr><td class="k">C</td><td class="n">2.261</td><td class="n">5.91</td></tr>
+            <tr><td class="k">AD</td><td class="n">1.252</td><td class="n">1.81</td></tr>
+            <tr><td class="k">AC</td><td class="n">1.198</td><td class="n">1.66</td></tr>
+            <tr class="dim"><td class="k">E</td><td class="n">0.483</td><td class="n">0.27</td></tr>
           </tbody>
         </table></div>
         <div class="stat" style="margin-top:14px">
-          <div><div class="v mean">0.992</div><div class="l">R²</div></div>
-          <div><div class="v">0.456</div><div class="l">Resid SD (m)</div></div>
-          <div><div class="v">80</div><div class="l">Resid df</div></div>
+          <div><div class="v mean">0.994</div><div class="l">R²</div></div>
+          <div><div class="v">0.509</div><div class="l">Resid SD (m)</div></div>
+          <div><div class="v">16</div><div class="l">Resid df</div></div>
         </div>
       </div>
     </div>
@@ -2164,13 +2187,16 @@ then add one run with every factor low.</span>
     <p class="say">Land the AB result hard. An interaction placing second, ahead of three main effects, is not a
       textbook curiosity — it is the ordinary condition of real processes, and it is invisible to both OFAT and to
       Exercise 1's design.</p>
-    <p>Note the sparsity claim from Part 0 is now checkable: A + AB + B + D + C = 64.77 + 9.75 + 8.92 + 6.48 + 5.05 =
-      <strong>95.0%</strong>, five terms out of thirty-one. And heredity holds: the three largest interactions are AB,
+    <p>Note the sparsity claim from Part 0 is now checkable: A + AB + B + D + C = 65.61 + 8.34 + 7.94 + 6.93 + 5.91 =
+      <strong>94.7%</strong>, five terms out of thirty-one. And heredity holds: the three largest interactions are AB,
       AD, AC — every one contains A, the largest main effect — while the interactions among weak factors (CD, CE, DE)
-      are essentially zero. Go back to the Part 0 slide if you have a projector you can split.</p>
+      are essentially zero. Thirty-two shots reproduced the replicated course's picture almost exactly.</p>
+    <p><strong>This is the exercise that survives.</strong> Say so plainly, then say why: 32 runs against 16
+      parameters leaves 16 residual degrees of freedom, and those were bought with <em>runs</em>, not replicates. It
+      is the strongest case in the course for spending shots on new settings. The bill arrives two slides later.</p>
     <p>Do not resolve the E question yet. Students will notice E has collapsed to 0.13%; hold that for the next slide,
       where it becomes evidence rather than an observation.</p>
-    <p class="ask">Q2.5, worth raising here: with 96 shots, terms contributing 0.04% are still statistically
+    <p class="ask">Q2.5, worth raising here: even with 32 shots, terms contributing 0.3% are still statistically
       significant. Which would you keep in an engineering model? Keep A, B, C, D and AB, arguably AC and AD; drop
       anything under about 1%. <em>Statistical significance answers "is it real?"; percent contribution answers "do I
       care?".</em></p>
@@ -2195,34 +2221,34 @@ then add one run with every factor low.</span>
             <line x1="44" y1="8" x2="44" y2="238" class="ax"/>
 
             <text class="lbl" x="0" y="26">A</text>
-            <rect x="44" y="14" width="417" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
-            <rect x="44" y="31" width="384" height="13" rx="2.5" fill="var(--mean)"/>
-            <rect x="430" y="31" width="27" height="13" rx="2.5" fill="var(--alarm)"/>
-            <text class="val" x="468" y="42">7.42 + 0.53</text>
+            <rect x="44" y="14" width="412" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
+            <rect x="44" y="31" width="389" height="13" rx="2.5" fill="var(--mean)"/>
+            <rect x="435" y="31" width="30" height="13" rx="2.5" fill="var(--alarm)"/>
+            <text class="val" x="474" y="42">7.53 + 0.58</text>
 
             <text class="lbl" x="0" y="80">B</text>
-            <rect x="44" y="68" width="207" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
-            <rect x="44" y="85" width="143" height="13" rx="2.5" fill="var(--mean)"/>
-            <rect x="189" y="85" width="61" height="13" rx="2.5" fill="var(--alarm)"/>
-            <text class="val" x="261" y="96">2.75 + 1.19 (AD)</text>
+            <rect x="44" y="68" width="204" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
+            <rect x="44" y="85" width="135" height="13" rx="2.5" fill="var(--mean)"/>
+            <rect x="181" y="85" width="65" height="13" rx="2.5" fill="var(--alarm)"/>
+            <text class="val" x="257" y="96">2.62 + 1.25 (AD)</text>
 
             <text class="lbl" x="0" y="134">C</text>
-            <rect x="44" y="122" width="130" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
-            <rect x="44" y="139" width="107" height="13" rx="2.5" fill="var(--mean)"/>
-            <rect x="153" y="139" width="19" height="13" rx="2.5" fill="var(--alarm)"/>
-            <text class="val" x="183" y="150">2.07 + 0.36 (AE)</text>
+            <rect x="44" y="122" width="135" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
+            <rect x="44" y="139" width="117" height="13" rx="2.5" fill="var(--mean)"/>
+            <rect x="163" y="139" width="20" height="13" rx="2.5" fill="var(--alarm)"/>
+            <text class="val" x="194" y="150">2.26 + 0.39 (AE)</text>
 
             <text class="lbl" x="0" y="188">D</text>
-            <rect x="44" y="176" width="268" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
-            <rect x="44" y="193" width="122" height="13" rx="2.5" fill="var(--mean)"/>
-            <rect x="168" y="193" width="149" height="13" rx="2.5" fill="var(--alarm)"/>
-            <text class="val" x="328" y="204">2.35 + 2.88 (AB)</text>
+            <rect x="44" y="176" width="269" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
+            <rect x="44" y="193" width="126" height="13" rx="2.5" fill="var(--mean)"/>
+            <rect x="172" y="193" width="139" height="13" rx="2.5" fill="var(--alarm)"/>
+            <text class="val" x="322" y="204">2.45 + 2.69 (AB)</text>
 
             <text class="lbl" x="0" y="232">E</text>
-            <rect x="44" y="220" width="88" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
-            <rect x="44" y="237" width="17" height="13" rx="2.5" fill="var(--mean)"/>
-            <rect x="63" y="237" width="55" height="13" rx="2.5" fill="var(--alarm)"/>
-            <text class="val" x="129" y="248">0.33 + 1.06 (AC)</text>
+            <rect x="44" y="220" width="93" height="13" rx="2.5" fill="none" stroke="var(--mean)" stroke-width="2"/>
+            <rect x="44" y="237" width="25" height="13" rx="2.5" fill="var(--mean)"/>
+            <rect x="71" y="237" width="62" height="13" rx="2.5" fill="var(--alarm)"/>
+            <text class="val" x="144" y="248">0.48 + 1.20 (AC)</text>
           </svg>
           <figcaption>Outline bar: what the 8-run screen reported. Solid bars: what it was made of, measured
             independently by the 32-run design.</figcaption>
@@ -2232,23 +2258,23 @@ then add one run with every factor low.</span>
         <div class="tw"><table>
           <thead><tr><th>Col</th><th class="n">Ex 1 said</th><th class="n">Main + alias</th></tr></thead>
           <tbody>
-            <tr><td class="k">A</td><td class="n">8.064</td><td class="n">7.948</td></tr>
-            <tr><td class="k">B</td><td class="n">4.007</td><td class="n">3.942</td></tr>
-            <tr><td class="k">C</td><td class="n">2.503</td><td class="n">2.431</td></tr>
-            <tr class="flag"><td class="k">D</td><td class="n">5.187</td><td class="n">5.228</td></tr>
-            <tr class="flag"><td class="k">E</td><td class="n">1.709</td><td class="n">1.389</td></tr>
+            <tr><td class="k">A</td><td class="n">7.966</td><td class="n">8.109</td></tr>
+            <tr><td class="k">B</td><td class="n">3.939</td><td class="n">3.871</td></tr>
+            <tr><td class="k">C</td><td class="n">2.612</td><td class="n">2.650</td></tr>
+            <tr class="flag"><td class="k">D</td><td class="n">5.203</td><td class="n">5.132</td></tr>
+            <tr class="flag"><td class="k">E</td><td class="n">1.804</td><td class="n">1.681</td></tr>
           </tbody>
         </table></div>
         <div class="panel alarm" style="margin-top:14px">
           <h4>Read row D again</h4>
-          <p style="margin-bottom:0">Screening reported <strong>5.187 m</strong> for arm hole. The unaliased arm-hole effect
-            is <strong>2.348 m</strong>. The missing <strong>2.88 m</strong> was never arm hole at all — it was the AB
-            interaction, sitting in D's column exactly as the alias table said it would.</p>
+          <p style="margin-bottom:0">Screening reported <strong>5.203 m</strong> for arm hole. The unaliased arm-hole
+            effect is <strong>2.447 m</strong>. The missing <strong>2.69 m</strong> was never arm hole at all — it was
+            the AB interaction, sitting in D's column exactly as the alias table said it would.</p>
         </div>
         <div class="panel" style="margin-top:12px">
           <h4>And row E</h4>
-          <p style="margin-bottom:0">Pin elevation was reported at 1.709 m and unaliased it is <strong>0.326 m</strong> —
-            overstated more than fivefold by AC. It was dropped for the right reason by luck, not by evidence.</p>
+          <p style="margin-bottom:0">Pin elevation was reported at 1.804 m and unaliased it is <strong>0.483 m</strong> —
+            overstated nearly fourfold by AC. It was dropped for the right reason by luck, not by evidence.</p>
         </div>
       </div>
     </div>
@@ -2258,7 +2284,8 @@ then add one run with every factor low.</span>
       column by column rather than summarised.</p>
     <p>The claim being verified is not vague. In Exercise 1 the students wrote "D estimates D + AB" on paper, from
       nothing but the generator D = AB and some sign arithmetic. Here, two independent experiments later, D + AB
-      measures 2.348 + 2.880 = 5.228, and the screen reported 5.187. <strong>A gap of 0.04 m on an 8-run design.</strong>
+      measures 2.447 + 2.685 = 5.132, and the screen reported 5.203. <strong>A gap of 0.07 m on an 8-shot
+      design.</strong>
       The theory is not approximately right; it is right, and the residual differences are ordinary sampling error
       because the two designs used different runs and different random draws.</p>
     <p>Two conclusions to draw explicitly. First: aliasing is not a vague warning about "possible confounding" — it is
@@ -2266,18 +2293,22 @@ then add one run with every factor low.</span>
       the screening design was <em>not broken</em>. It did precisely what it promised. It reported sums of aliased
       effects, and it was our job to know that.</p>
     <p class="ask">Ask: "Which decision from Exercise 1 would you now reverse?" The interesting answer is
-      <em>none of them</em> — the ranking survives and dropping E was correct. Then ask the harder question: "Was
-      dropping E a good decision?" It reached the right conclusion from a five-times-overstated estimate. A right
-      answer from a wrong number is luck, and the next process may not be so generous.</p>
-    <p class="only"><b>Instructor only</b> — if a student challenges the A row (8.064 versus 7.948, the largest
-      discrepancy), that is a good catch: A's aliases are BD + CE, which are small and of opposite reliability, so most
-      of the 0.12 m gap is sampling error rather than structure. Reproduce it with a different seed and the gap moves.</p>
+      <em>reinstate C</em> — the screen dropped it for failing a test, and the full factorial shows it is real and
+      fourth largest. Then the harder question: "Was dropping E a good decision?" It reached the right conclusion from
+      a nearly fourfold overstatement. A right answer from a wrong number is luck.</p>
+    <p>Worth naming what this slide proves about the revision: <strong>the aliasing arithmetic did not need
+      replication.</strong> Every reconciliation on this slide holds to within 0.15 m on 8 and 32 shots. Bias is
+      structural, it is computable in advance, and it is entirely unaffected by how many times you fire each setting.
+      Replication buys you evidence; it never buys you resolution.</p>
+    <p class="only"><b>Instructor only</b> — if a student challenges the A row (7.966 versus 8.109, the largest
+      discrepancy), that is a good catch: A's aliases are BD + CE, both small, so most of the 0.14 m gap is sampling
+      error rather than structure. Reproduce it with a different seed and the gap moves.</p>
   </aside>
 </article>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag a">Exercise 2</span><span>Scoring both screens</span></div>
+    <div class="eyebrow"><span class="tag a">Exercise 2a</span><span>Scoring both screens</span></div>
     <h2 class="t">Now settle the argument from Exercise 1b</h2>
     <p class="sub">The two screening designs disagreed and neither could adjudicate. The full factorial can — it knows
       the true main effects and every interaction that was contaminating them.</p>
@@ -2285,8 +2316,8 @@ then add one run with every factor low.</span>
       <div>
         <figure>
           <div class="legend">
-            <span><i style="background:var(--alarm)"></i>2<sup>5−2</sup> res III · 24 shots</span>
-            <span><i style="background:var(--alarm);opacity:.4;outline:1px solid var(--alarm)"></i>Plackett–Burman · 36 shots</span>
+            <span><i style="background:var(--alarm)"></i>2<sup>5−2</sup> res III · 8 shots</span>
+            <span><i style="background:var(--alarm);opacity:.4;outline:1px solid var(--alarm)"></i>Plackett–Burman · 12 shots</span>
           </div>
           <svg viewBox="0 0 470 240" role="img" aria-label="Estimation error by design. The regular resolution three design overestimates every effect, worst on D at 2.84 metres. The Plackett-Burman underestimates every effect, worst on D at 1.03 metres.">
             <line x1="250" y1="16" x2="250" y2="214" class="ax"/>
@@ -2295,29 +2326,29 @@ then add one run with every factor low.</span>
             <text class="ttl" x="70" y="10">Estimate − truth (m)</text>
 
             <text class="lbl" x="0" y="34">A</text>
-            <rect x="250" y="22" width="39" height="13" rx="2" fill="var(--alarm)"/>
-            <rect x="232" y="38" width="18" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
-            <text class="val" x="295" y="33">+0.64</text><text class="val" x="176" y="49">−0.31</text>
+            <rect x="250" y="22" width="27" height="13" rx="2" fill="var(--alarm)"/>
+            <rect x="227" y="38" width="23" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
+            <text class="val" x="283" y="33">+0.44</text><text class="val" x="171" y="49">−0.37</text>
 
             <text class="lbl" x="0" y="74">B</text>
-            <rect x="250" y="62" width="75" height="13" rx="2" fill="var(--alarm)"/>
-            <rect x="193" y="78" width="57" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
-            <text class="val" x="331" y="73">+1.25</text><text class="val" x="137" y="89">−0.95</text>
+            <rect x="250" y="62" width="80" height="13" rx="2" fill="var(--alarm)"/>
+            <rect x="199" y="78" width="51" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
+            <text class="val" x="336" y="73">+1.32</text><text class="val" x="143" y="89">−0.83</text>
 
             <text class="lbl" x="0" y="114">C</text>
-            <rect x="250" y="102" width="26" height="13" rx="2" fill="var(--alarm)"/>
-            <rect x="193" y="118" width="57" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
-            <text class="val" x="282" y="113">+0.43</text><text class="val" x="137" y="129">−0.96</text>
+            <rect x="250" y="102" width="21" height="13" rx="2" fill="var(--alarm)"/>
+            <rect x="189" y="118" width="61" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
+            <text class="val" x="277" y="113">+0.35</text><text class="val" x="133" y="129">−1.01</text>
 
             <text class="lbl" x="0" y="154">D</text>
-            <rect x="250" y="142" width="170" height="13" rx="2" fill="var(--alarm)"/>
-            <rect x="188" y="158" width="62" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
-            <text class="val" x="426" y="153">+2.84</text><text class="val" x="132" y="169">−1.03</text>
+            <rect x="250" y="142" width="166" height="13" rx="2" fill="var(--alarm)"/>
+            <rect x="190" y="158" width="60" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
+            <text class="val" x="422" y="153">+2.76</text><text class="val" x="134" y="169">−1.00</text>
 
             <text class="lbl" x="0" y="194">E</text>
-            <rect x="250" y="182" width="83" height="13" rx="2" fill="var(--alarm)"/>
-            <rect x="204" y="198" width="46" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
-            <text class="val" x="339" y="193">+1.38</text><text class="val" x="148" y="209">−0.77</text>
+            <rect x="250" y="182" width="80" height="13" rx="2" fill="var(--alarm)"/>
+            <rect x="185" y="198" width="65" height="13" rx="2" fill="var(--alarm)" fill-opacity=".4" stroke="var(--alarm)"/>
+            <text class="val" x="336" y="193">+1.32</text><text class="val" x="129" y="209">−1.08</text>
           </svg>
           <figcaption>Every regular-design error is positive; every Plackett–Burman error is negative. Neither is
             random — both are structural.</figcaption>
@@ -2327,25 +2358,24 @@ then add one run with every factor low.</span>
         <div class="tw"><table>
           <thead><tr><th></th><th class="n">Ex 2 estimate</th><th class="n">res III</th><th class="n">PB-12</th></tr></thead>
           <tbody>
-            <tr><td class="k">A</td><td class="n">7.422</td><td class="n">8.064</td><td class="n">7.115</td></tr>
-            <tr><td class="k">B</td><td class="n">2.754</td><td class="n">4.007</td><td class="n">1.806</td></tr>
-            <tr><td class="k">C</td><td class="n">2.073</td><td class="n">2.503</td><td class="n">1.118</td></tr>
-            <tr class="flag"><td class="k">D</td><td class="n">2.348</td><td class="n">5.187</td><td class="n">1.317</td></tr>
-            <tr class="flag"><td class="k">E</td><td class="n">0.326</td><td class="n">1.709</td><td class="n">−0.447</td></tr>
-            <tr class="lead"><td><strong>Σ |error|</strong></td><td class="n">—</td><td class="n"><strong>6.55</strong></td><td class="n"><strong>4.02</strong></td></tr>
+            <tr><td class="k">A</td><td class="n">7.531</td><td class="n">7.966</td><td class="n">7.165</td></tr>
+            <tr><td class="k">B</td><td class="n">2.619</td><td class="n">3.939</td><td class="n">1.788</td></tr>
+            <tr><td class="k">C</td><td class="n">2.261</td><td class="n">2.612</td><td class="n">1.253</td></tr>
+            <tr class="flag"><td class="k">D</td><td class="n">2.447</td><td class="n">5.203</td><td class="n">1.448</td></tr>
+            <tr class="flag"><td class="k">E</td><td class="n">0.483</td><td class="n">1.804</td><td class="n">−0.601</td></tr>
+            <tr class="lead"><td><strong>Σ |error|</strong></td><td class="n">—</td><td class="n"><strong>6.18</strong></td><td class="n"><strong>4.29</strong></td></tr>
           </tbody>
         </table></div>
         <div class="panel mean" style="margin-top:12px">
           <h4>The bias arithmetic works for both</h4>
-          <p style="margin-bottom:0">Regular: D + AB = 2.348 + 2.880 = <strong>5.228</strong> against 5.187 reported.
-            Plackett–Burman: D plus one third of six interactions = 2.348 − 0.785 = <strong>1.564</strong> against 1.317
-            reported. Different formulas, both predictive.</p>
+          <p style="margin-bottom:0">Regular: D + AB = 2.447 + 2.685 = <strong>5.132</strong> against 5.203 reported.
+            PB: D plus a third of six interactions = 2.447 − 0.641 = <strong>1.806</strong> against 1.448. Both
+            predictive, on one shot per run.</p>
         </div>
         <div class="panel alarm" style="margin-top:12px">
           <h4>Not a clean win</h4>
-          <p style="margin-bottom:0">PB is closer overall and far closer on D — but <strong>worse on C</strong> (0.96
-            against 0.43), and it got E's <strong>sign</strong> wrong. It also spent 50% more shots. Diluting bias
-            moves it around; it does not remove it.</p>
+          <p style="margin-bottom:0">PB is closer on D but <strong>worse on C</strong> (1.01 against 0.35), got E's
+            <strong>sign</strong> wrong, and spent 50% more shots. Diluting bias moves it; it does not remove it.</p>
         </div>
       </div>
     </div>
@@ -2360,7 +2390,7 @@ then add one run with every factor low.</span>
       everything upward. The Plackett–Burman adds six at a third each with mixed signs, and on this particular process
       those sums happen to come out negative.</p>
     <p>Resist declaring Plackett–Burman the winner, even though Σ|error| favours it 4.02 to 6.55. Three qualifications:
-      it used 36 shots against 24; it was worse on C; and it inverted the sign of E, which in a screening context is
+      it used 12 shots against 8; it was worse on C; and it inverted the sign of E, which in a screening context is
       the one error that could get a real factor discarded for the wrong reason. The honest summary is that
       <strong>the two designs have different failure modes, and neither is safe alone.</strong></p>
     <p>Tie it back to the spare-column yardstick. That diagnostic said "trust only A" — and, scored against truth, that
@@ -2374,7 +2404,7 @@ then add one run with every factor low.</span>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span>Interpreting the interaction</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 2a</span><span>Interpreting the interaction</span></div>
     <h2 class="t">What AB actually means at the machine</h2>
     <p class="sub">An interaction is not a statistical artefact to be reported. It is a mechanical statement: pull-back
       is worth more when the ball is aimed higher.</p>
@@ -2406,16 +2436,16 @@ then add one run with every factor low.</span>
             <circle cx="110" cy="193" r="6" fill="var(--mean)" stroke="var(--surface)" stroke-width="2"/>
             <circle cx="390" cy="55" r="6" fill="var(--mean)" stroke="var(--surface)" stroke-width="2"/>
 
-            <text class="val" x="74" y="180">3.55</text>
-            <text class="val" x="74" y="212">3.67</text>
-            <text class="val" x="400" y="52">13.85</text>
-            <text class="val" x="400" y="134">8.22</text>
+            <text class="val" x="74" y="180">3.56</text>
+            <text class="val" x="74" y="212">3.63</text>
+            <text class="val" x="400" y="52">13.78</text>
+            <text class="val" x="400" y="134">8.48</text>
 
             <line x1="410" y1="55" x2="410" y2="130" stroke="var(--alarm)" stroke-width="1.5"/>
             <text class="val" x="416" y="96" fill="var(--alarm)">gap</text>
           </svg>
           <figcaption>Non-parallel lines are the interaction. At A low the stop angle barely matters; at A high it is
-            worth 5.6 m.</figcaption>
+            worth 5.3 m.</figcaption>
         </figure>
       </div>
       <div>
@@ -2427,8 +2457,8 @@ then add one run with every factor low.</span>
         </div>
         <div class="panel" style="margin-bottom:12px">
           <h4>Why "main effect of B" is a meaningless phrase here</h4>
-          <p style="margin-bottom:0">B's effect is <strong>−0.13 m at A low</strong> and <strong>+5.63 m at A high</strong>.
-            The reported main effect of 2.754 m is the average of two numbers, neither of which occurs anywhere on the
+          <p style="margin-bottom:0">B's effect is <strong>−0.07 m at A low</strong> and <strong>+5.30 m at A high</strong>.
+            The reported main effect of 2.619 m is the average of two numbers, neither of which occurs anywhere on the
             machine. When an interaction is present, main effects are averages over conditions you never operate in.</p>
         </div>
         <div class="panel vary">
@@ -2444,10 +2474,10 @@ then add one run with every factor low.</span>
       an interpretation. "Pull-back is worth more when the ball is lofted, because there is more speed available to
       convert into range" is.</p>
     <p>The middle panel deserves the most attention and gets the least in most courses. A main effect in the presence
-      of an interaction is an <em>average over levels of the other factor</em>. Here it averages −0.13 and 5.63 to get
-      2.754 — a number that describes no achievable configuration of the machine. It is not wrong, but it answers a
+      of an interaction is an <em>average over levels of the other factor</em>. Here it averages −0.07 and 5.30 to get
+      2.619 — a number that describes no achievable configuration of the machine. It is not wrong, but it answers a
       question nobody asked.</p>
-    <p>Connect back to Exercise 1's alias table. This 2.88 m interaction is the quantity that inflated the D column.
+    <p>Connect back to Exercise 1's alias table. This 2.69 m interaction is the quantity that inflated the D column.
       It was always there, always this large; the screening design simply had no column of its own to put it in.</p>
     <p class="ask">Ask what would have happened if AB had been <em>negative</em> and roughly equal in size to D. The
       D column would have reported approximately zero, and the team would have dropped arm hole as irrelevant. Aliasing
@@ -2457,7 +2487,7 @@ then add one run with every factor low.</span>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span class="tag a">Same 96 shots, two models</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 2a</span><span class="tag a">Same 32 shots, two models</span></div>
     <h2 class="t">What omitting the interactions costs</h2>
     <p class="sub">Not a different experiment. The identical data, fitted twice — once with the two-factor
       interactions, once without.</p>
@@ -2466,113 +2496,254 @@ then add one run with every factor low.</span>
         <div class="panel mean">
           <h4>Main effects + interactions</h4>
           <div class="stat">
-            <div><div class="v mean">0.992</div><div class="l">R²</div></div>
-            <div><div class="v mean">0.456</div><div class="l">Resid SD (m)</div></div>
+            <div><div class="v mean">0.994</div><div class="l">R²</div></div>
+            <div><div class="v mean">0.509</div><div class="l">Resid SD (m)</div></div>
           </div>
-          <p style="margin:14px 0 0">E is significant at <em>p</em> = 7.5 × 10⁻⁴.</p>
+          <p style="margin:14px 0 0">E is significant at <em>p</em> = 0.016.</p>
         </div>
         <div class="panel alarm">
           <h4>Main effects only</h4>
           <div class="stat">
-            <div><div class="v alarm">0.854</div><div class="l">R²</div></div>
-            <div><div class="v alarm">1.823</div><div class="l">Resid SD (m)</div></div>
+            <div><div class="v alarm">0.867</div><div class="l">R²</div></div>
+            <div><div class="v alarm">1.884</div><div class="l">Resid SD (m)</div></div>
           </div>
-          <p style="margin:14px 0 0">E is <strong>not</strong> significant at <em>p</em> = 0.38.</p>
+          <p style="margin:14px 0 0">E is <strong>not</strong> significant at <em>p</em> = 0.48.</p>
         </div>
       </div>
       <figure style="margin-top:22px">
-        <svg viewBox="0 0 560 118" role="img" aria-label="Residual standard deviation compared with pure error. Pure error 0.206 metres, full model 0.456, main effects only 1.823 metres.">
+        <svg viewBox="0 0 560 118" role="img" aria-label="Residual standard deviation with no pure error to compare against. Pure error is not measurable; the full model residual is 0.509 metres and the main-effects-only residual 1.884 metres.">
           <line x1="150" y1="6" x2="150" y2="104" class="ax"/>
           <text class="lbl" x="0" y="22">pure error</text>
-          <rect x="150" y="10" width="41" height="16" rx="3" fill="var(--vary)"/>
-          <text class="val" x="199" y="23">0.206 m — what the machine actually does</text>
+          <rect x="150" y="10" width="98" height="16" rx="3" fill="none" stroke="var(--alarm)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text class="val" x="256" y="23" fill="var(--alarm)">not measurable — no setting was fired twice</text>
           <text class="lbl" x="0" y="56">full model</text>
-          <rect x="150" y="44" width="91" height="16" rx="3" fill="var(--mean)"/>
-          <text class="val" x="249" y="57">0.456 m</text>
+          <rect x="150" y="44" width="102" height="16" rx="3" fill="var(--mean)"/>
+          <text class="val" x="260" y="57">0.509 m</text>
           <text class="lbl" x="0" y="90">mains only</text>
-          <rect x="150" y="78" width="365" height="16" rx="3" fill="var(--alarm)"/>
-          <text class="val" x="150" y="112">1.823 m — nearly 9× the real noise, all of it discarded signal</text>
+          <rect x="150" y="78" width="377" height="16" rx="3" fill="var(--alarm)"/>
+          <text class="val" x="150" y="112">1.884 m — and nothing to say how much of either is the machine</text>
         </svg>
       </figure>
     </div>
-    <div class="keyline"><b>Take away</b><p>Dropped terms do not disappear. They go into the residual, inflate your
-      error estimate, and start hiding the small effects that <em>are</em> in the model.</p></div>
+    <div class="keyline a"><b>Take away</b><p>Dropped terms do not disappear — they go into the residual and hide the
+      small effects you kept. The replicated course could <em>prove</em> that, by comparing against pure error. Here
+      the top bar is missing, and the argument has to be taken on trust.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">This is the second-most important slide in the deck. The comparison is airtight because it is the
-      same 96 shots — no sampling difference, no seed difference, nothing to argue about. The only change is which
+      same 32 shots — no sampling difference, no seed difference, nothing to argue about. The only change is which
       columns went into the model.</p>
     <p>Walk the causal chain slowly. Omitting the interactions does not delete them from the process; the machine still
-      behaves that way. Their contribution has to land somewhere, and it lands in the residual. The residual standard
-      deviation inflates from 0.456 m to 1.823 m — nearly nine times the pure error of 0.206 m that the replicates
-      independently measured. That inflated residual is the denominator of every <em>F</em> test in the model.</p>
+      behaves that way. Their contribution has to land somewhere, and it lands in the residual, which inflates from
+      0.509 m to 1.884 m. That inflated residual is the denominator of every <em>F</em> test in the model.</p>
+    <p><strong>Then point at the missing top bar, and stay there.</strong> In the replicated course this figure had a
+      third row: pure error, 0.206 m, measured independently by firing the same setting three times. That row is what
+      turned "1.823 is bigger than 0.456" into "1.823 is nine times the real noise, and all of the difference is
+      discarded signal". Without it you can still see the residual grow, but you cannot say what it grew <em>relative
+      to</em>. The argument on this slide is still true. This experiment can no longer prove it.</p>
     <p>Hence the E result, which is the sting. Pin elevation is a genuinely real factor with a genuinely small effect
-      of 0.326 m. In the correct model it is detected. In the misspecified model it vanishes into an error term made of
-      discarded signal. <strong>A misspecified model does not just get the dropped terms wrong; it degrades your
-      ability to see the terms you kept.</strong></p>
-    <p>Connect to the pure-error row, which is the anchor. Because the design has replicates, you have an independent
-      measurement of how noisy the machine is. Any residual much larger than that is not noise — it is model failure
-      wearing noise's clothing. This is the intuition behind the lack-of-fit test on the next slide.</p>
+      of 0.483 m. In the correct model it is detected at <em>p</em> = 0.016. In the misspecified model it vanishes into
+      an error term made of discarded signal. <strong>A misspecified model does not just get the dropped terms wrong;
+      it degrades your ability to see the terms you kept.</strong></p>
+    <p class="only"><b>Instructor only</b> — do not oversell that E detection. Run this same 32-shot design over 200
+      seeds and E comes out significant 18% of the time. Seed 4004 was a good draw, and a class that takes it as
+      evidence has learned the wrong thing. The replicated course's 96 shots held E at 100% at this noise level.</p>
   </aside>
 </article>
 
 <article class="item" data-part="3">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 2</span><span>Diagnosing the best two-level model available</span></div>
-    <h2 class="t">Even the full factorial does not fit</h2>
-    <p class="sub">Replicates give an independent measure of pure noise. Compare the model's residual against it, and
-      the model fails — decisively.</p>
+    <div class="eyebrow"><span class="tag a">Exercise 2a</span><span>The diagnostic that is not there</span></div>
+    <h2 class="t">You cannot ask whether this model fits</h2>
+    <p class="sub">The lack-of-fit test splits the residual into model error and pure noise. It needs a setting fired
+      twice. Not one setting in this experiment was.</p>
     <div class="body cols c-wide-l">
       <div>
         <div class="tw"><table>
           <thead><tr><th>Lack-of-fit test</th><th class="n">Value</th></tr></thead>
           <tbody>
-            <tr><td>Pure error SD (from replicates)</td><td class="n">0.206 m</td></tr>
-            <tr><td>Residual SD (15-term model)</td><td class="n">0.456 m</td></tr>
-            <tr class="flag"><td><em>F</em> (16, 64)</td><td class="n">20.47</td></tr>
-            <tr class="flag"><td><em>p</em></td><td class="n">3.1 × 10⁻¹⁹</td></tr>
+            <tr class="flag"><td>Pure error SD (from replicates)</td><td class="n">—</td></tr>
+            <tr><td>Residual SD (15-term model)</td><td class="n">0.509 m</td></tr>
+            <tr class="flag"><td><em>F</em></td><td class="n">—</td></tr>
+            <tr class="flag"><td><em>p</em></td><td class="n">—</td></tr>
           </tbody>
         </table></div>
         <div class="panel alarm" style="margin-top:14px">
-          <h4>R² was 0.992</h4>
-          <p style="margin-bottom:0">And the model is still, unambiguously, inadequate. <strong>R² measures fit at the
-            points you visited.</strong> It cannot comment on a point you did not visit, and it cannot distinguish
-            signal you modelled from signal you buried.</p>
+          <h4>R² is 0.994</h4>
+          <p style="margin-bottom:0">And it means exactly as little as it did before. The replicated course could
+            <em>prove</em> the model inadequate — <em>F</em>(16, 64) = 20.5, <em>p</em> = 3 × 10⁻¹⁹. The model here is
+            wrong in precisely the same ways, to precisely the same degree. <strong>All that has changed is that
+            nothing on this slide can tell you so.</strong></p>
         </div>
       </div>
       <div>
         <div class="panel mean" style="margin-bottom:12px">
-          <h4>Two things are being missed</h4>
+          <h4>What that 0.509 m is made of</h4>
           <p><strong>1 · Higher-order interactions.</strong> We modelled 15 of 31 estimable effects. The 16 three-,
-            four- and five-factor terms went into the residual, and the lack-of-fit degrees of freedom is exactly 16.</p>
-          <p style="margin-bottom:0"><strong>2 · Curvature.</strong> Every run sits at a corner. A two-level design fits
-            a plane through corners and has no information whatsoever about what happens between them.</p>
+            four- and five-factor terms went into the residual — real, structural signal.</p>
+          <p style="margin-bottom:0"><strong>2 · Shot-to-shot noise</strong>, roughly 0.16 m — a number this
+            experiment has no way to know. <strong>The mixture cannot be separated</strong>, and every <em>F</em> test
+            divides by it anyway.</p>
         </div>
         <div class="panel alarm">
-          <h4>Why this ends the two-level phase</h4>
-          <p style="margin-bottom:0">A separate centre-point test on this machine puts the centre <strong>0.72 m
-            above</strong> the average of the corners (<em>F</em> = 133.8, <em>p</em> = 1.7 × 10⁻⁷). The surface is
-            domed. A plane fitted to the corners under-predicts the middle by three-quarters of a metre — and 10 m is
-            in the middle.</p>
+          <h4>Two designs, two centre sets, one answer</h4>
+          <p style="margin-bottom:0">The de-aliasing design puts the centre <strong>0.85 m above</strong> the corners
+            (<em>F</em>(1, 3) = 69.3). Exercise 2b, independently, puts it <strong>0.71 m above</strong>
+            (<em>F</em>(1, 3) = 18.2). Different runs, different draws, same verdict. Centre points are the cheapest
+            replication in DOE and they carry two diagnostics at once.</p>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Take away</b><p>You can maximise with a plane. You cannot reliably <em>hit a target</em>
-      with one. That is what Exercise 3 is for.</p></div>
+    <div class="keyline a"><b>Take away</b><p>An unreplicated design cannot be asked whether it fits — there is no
+      answer, not a reassuring one. Before accepting that, work out the cheapest possible fix. It is four runs, and it
+      is Exercise 2b.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">"Declaring victory on R²" is error number five on the common-failures list, and this slide is the
-      antidote. R² of 0.992 alongside a lack-of-fit <em>p</em> of 3 × 10⁻¹⁹ is a contradiction only if you thought R²
-      was a test of model adequacy. It is not. It is the fraction of variation explained <em>at the design points</em>.</p>
-    <p>The degrees-of-freedom arithmetic is worth showing because it makes the diagnosis concrete rather than
-      mysterious: 32 distinct settings, 16 model parameters, so 16 lack-of-fit degrees of freedom — precisely the 16
-      higher-order interactions we chose not to model. The test is telling us something true and specific.</p>
-    <p>Then make the practical judgement, because this is where engineering enters. Is a residual of 0.456 m against a
-      pure error of 0.206 m a problem? For ranking factors, no. For predicting where a ball lands to within a few
-      centimetres, yes. The verdict depends on the decision the model is being asked to support — and that is a
-      sentence worth writing on the board, because the same tension returns in Exercise 3 with the opposite resolution.</p>
+    <p class="say">Run this slide as a subtraction. Put up the replicated course's version if you can — pure error
+      0.206 m, residual 0.456 m, <em>F</em>(16, 64) = 20.5, <em>p</em> = 3 × 10⁻¹⁹ — and then delete the first row and
+      watch the other three go with it. Everything downstream of pure error is downstream of replication.</p>
+    <p>"Declaring victory on R²" is error number five on the common-failures list. In the replicated course this slide
+      is the antidote, because it shows R² = 0.992 sitting happily beside a decisive rejection. Here R² = 0.994 sits
+      beside nothing at all, which is worse: the student has a high R², no contradicting evidence, and every reason to
+      believe the job is done.</p>
+    <p>The degrees-of-freedom arithmetic still explains what is <em>in</em> the residual: 32 distinct settings, 16
+      model parameters, 16 residual df — precisely the 16 higher-order interactions we chose not to model. What is
+      gone is the ability to weigh that against noise. Ask the room what fraction of 0.509 m is model error. Nobody in
+      the room can answer, and that is the point.</p>
+    <p>Keep the engineering question alive anyway, because it is the one that matters: is a 0.509 m residual a problem?
+      For ranking factors, no. For predicting where a ball lands to within a few centimetres, yes. The verdict depends
+      on the decision the model supports — and now it also depends on a judgement about how much of that residual is
+      noise, made without evidence.</p>
     <p class="ask">Ask: "How would you detect curvature with a two-level design?" You cannot, from the corners alone —
-      you must add runs at the centre. Which is exactly the transition to Part 4.</p>
+      you must add runs at the centre. Which is exactly the transition to Part 4, and the one test that still works.</p>
+  </aside>
+</article>
+
+<article class="item" data-part="3">
+  <div class="holder"><section class="slide">
+    <div class="eyebrow"><span class="tag v">Exercise 2b</span><span>Run card</span></div>
+    <h2 class="t">Fire four more shots</h2>
+    <p class="sub">Do not re-run anything. Keep the 32 corners you already have and add four runs with every factor at
+      its centre — the one setting a two-level design never visits.</p>
+    <div class="body cols c2">
+      <div>
+        <div class="runcard" style="margin-bottom:12px">
+          <header>Simulator settings</header>
+          <dl>
+            <dt>Load design</dt><dd>Full factorial 2^5 + 4 centre points</dd>
+            <dt>Runs</dt><dd>32 corners + 4 centre</dd>
+            <dt>Replicates</dt><dd>1</dd>
+            <dt>Seed</dt><dd>4004 — unchanged</dd>
+            <dt>Total shots</dt><dd>36</dd>
+          </dl>
+        </div>
+        <div class="panel vary">
+          <h4>The centre run</h4>
+          <p style="margin-bottom:0">Every factor at coded zero: <strong>160°, 102.5°, 3.0, 3.0, 2.25</strong>. Four
+            runs at that one setting, which makes them four <em>replicates of each other</em> — the only repeated
+            measurement anywhere in this experiment.</p>
+        </div>
+      </div>
+      <div>
+        <div class="panel mean" style="margin-bottom:12px">
+          <h4>Why this is a clean comparison</h4>
+          <p style="margin-bottom:0">The centre runs are appended after the factorial block, so the 32 corner shots in
+            2b are <strong>the identical numbers</strong> from 2a — same seed, same draws. Nothing about the
+            comparison is sampling noise. The only difference between the two exercises is four extra shots.</p>
+        </div>
+        <div class="panel">
+          <h4>Predict before you fire</h4>
+          <p style="margin-bottom:0">Write down two numbers now. <strong>Where will the centre land?</strong> The
+            32-corner model says 7.36 m. And <strong>how far apart will the four centre shots be?</strong> That spread
+            is the first honest look at this machine's noise that the exercise has had.</p>
+        </div>
+      </div>
+    </div>
+    <div class="keyline v"><b>Cost</b><p>Four runs. 13% more shots than 2a, and the only ones in the whole exercise
+      that are fired at a setting you have already used.</p></div>
+  </section></div>
+  <aside class="notes"><h5>Lecture notes</h5>
+    <p class="say">Make the class predict the centre response before firing. The 15-term model fitted to the corners
+      predicts 7.36 m. Anyone who trusts a plane fitted to corners should expect the centre to land there. It does
+      not, and that gap is the curvature test.</p>
+    <p>The second prediction matters more. Ask for a guess at the spread of the four centre shots. Most rooms guess
+      far too small, because 32 shots at 32 different settings gave them no feel for shot-to-shot noise at all — which
+      is exactly the deficiency being fixed.</p>
+    <p class="ask">Ask why centre points rather than simply repeating four corners. Both would give pure error; only
+      the centre also tells you whether the surface is flat between the corners. Two diagnostics for the price of one
+      is why centre points are the standard augmentation.</p>
+  </aside>
+</article>
+
+<article class="item" data-part="3">
+  <div class="holder"><section class="slide">
+    <div class="eyebrow"><span class="tag v">Exercise 2b</span><span>Results · seed 4004 · 36 shots</span></div>
+    <h2 class="t">What four runs bought</h2>
+    <div class="body cols c-wide-l">
+      <div>
+        <div class="tw"><table>
+          <thead><tr><th></th><th class="n">2a · 32 shots</th><th class="n">2b · 36 shots</th></tr></thead>
+          <tbody>
+            <tr><td>Centre shots</td><td class="n">—</td><td class="n">7.83 · 7.94 · 7.99 · 8.53</td></tr>
+            <tr class="lead"><td>Pure error</td><td class="n">—</td><td class="n">0.314 m on 3 df</td></tr>
+            <tr><td>Residual SD (15 terms)</td><td class="n">0.509 m</td><td class="n">0.509 m</td></tr>
+            <tr class="lead"><td>Lack of fit</td><td class="n">not computable</td><td class="n"><em>F</em>(16, 3) = 2.62 · <em>p</em> = 0.23</td></tr>
+            <tr class="flag"><td>Curvature</td><td class="n">not computable</td><td class="n"><em>F</em>(1, 3) = 18.2 · <em>p</em> = 0.024</td></tr>
+            <tr class="dim"><td>Effects significant</td><td class="n">11 of 15</td><td class="n">11 of 15</td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel mean" style="margin-top:14px">
+          <h4>Note the last row</h4>
+          <p style="margin-bottom:0">The same eleven effects either way. <strong>2b found nothing new</strong> — it
+            found whether 2a was entitled to its answer.</p>
+        </div>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:12px">
+          <h4>Lack of fit: the assumption, checked</h4>
+          <p style="margin-bottom:0">2a had to <em>assume</em> its 0.509 m residual was mostly noise. 2b measures the
+            noise at 0.314 m — a ratio of <strong>1.6×</strong>, so the dropped interactions really are small. Same
+            conclusion, now held for a reason.</p>
+        </div>
+        <div class="panel alarm" style="margin-bottom:12px">
+          <h4>Curvature: the decision, changed</h4>
+          <p style="margin-bottom:0">The centre sits <strong>0.71 m above</strong> the corner average — a plane
+            under-predicts the middle by 7%, and 10 m is in the middle. <strong>This is what sends you to Exercise
+            3.</strong></p>
+        </div>
+        <div class="panel vary">
+          <h4>Three degrees of freedom is still three</h4>
+          <p style="margin-bottom:0">The de-aliasing design's centre points gave <em>s</em> = 0.182 m; these gave
+            0.314 m. Same setting, two estimates of one number, 1.7× apart. A 3-df pure error is a blunt
+            instrument.</p>
+        </div>
+      </div>
+    </div>
+    <div class="keyline v"><b>The rule worth taking to work</b><p>If you must run unreplicated, <strong>replicate the
+      centre</strong>. Four runs bought an error term made of noise, a check on the model, and the finding that
+      decides the next experiment.</p></div>
+  </section></div>
+  <aside class="notes"><h5>Lecture notes</h5>
+    <p class="say">Open on the last row of the table, not the first. Eleven effects either way — <strong>2b found
+      nothing new</strong>. Students expect the augmented design to detect more, and when it does not, the real value
+      of the four runs becomes visible: they did not change the answer, they established whether the answer was
+      trustworthy.</p>
+    <p>Then walk the two diagnostics in order of consequence. Lack of fit is the quieter one and it vindicates 2a: a
+      residual 1.6 times pure error means the dropped three-, four- and five-factor interactions are genuinely small.
+      2a assumed that; 2b knows it. Note that this is the opposite verdict to the replicated course, where 96 shots
+      pinned pure error tightly enough to reject the same model — and say why: precision in the yardstick, not error
+      in the model.</p>
+    <p>Curvature is the one that changes what you do on Monday. 0.71 m above the corner average, <em>p</em> = 0.024.
+      Exercise 2a would have finished with a plane and no reason to distrust it. Ask what would have happened to a team
+      that took that plane and solved it for 10 m.</p>
+    <p>Be honest about the 3 df, because a sharp student will raise it. The de-aliasing design's four centre runs gave
+      <em>s</em> = 0.182 m at the same settings; these four gave 0.314 m. The true value is 0.187 m. Two samples of
+      four, one nearly exact and one 68% high — that is what a standard deviation on three degrees of freedom looks
+      like, and it is the argument for six or eight centre runs rather than four when they are carrying this much
+      weight.</p>
+    <p class="ask">Ask: "You have 36 shots and this design. Would you rather have spent the last four on four more
+      corners, or at the centre?" Four more corners buy a fractionally better estimate of effects you have already
+      measured well. The centre buys two diagnostics you otherwise cannot have at all.</p>
   </aside>
 </article>
 
@@ -2586,30 +2757,32 @@ then add one run with every factor low.</span>
           <thead><tr><th>Decision</th><th>Evidence</th></tr></thead>
           <tbody>
             <tr class="lead"><td class="k">Carry A, B, C</td><td>Largest main effects, and A carries the biggest interactions. These get a full response surface.</td></tr>
-            <tr><td class="k">Fix D at 3.0</td><td>Real (6.5%) but nearly tied with C, and its two opposing mechanisms make it a poor optimisation handle. A judgement call, not a result.</td></tr>
-            <tr class="dim"><td class="k">Drop E</td><td>0.13% and an effect of 0.326 m. Fix at 2.25 and stop studying it.</td></tr>
-            <tr><td class="k">Change the model form</td><td>Lack of fit and centre-point curvature both reject a plane. Three levels are required next.</td></tr>
+            <tr><td class="k">Fix D at 3.0</td><td>Real (6.9%) but nearly tied with C, and its two opposing mechanisms make it a poor optimisation handle. A judgement call, not a result.</td></tr>
+            <tr class="dim"><td class="k">Drop E</td><td>0.27% and an effect of 0.483 m. Fix at 2.25 and stop studying it.</td></tr>
+            <tr><td class="k">Change the model form</td><td>2b's centre points reject a plane (<em>p</em> = 0.024) and clear the model of lack of fit (<em>p</em> = 0.23). Three levels are required next.</td></tr>
           </tbody>
         </table></div>
       </div>
       <div>
         <div class="panel alarm" style="margin-bottom:12px">
           <h4>Do not say "E has no effect"</h4>
-          <p style="margin-bottom:0">E has an effect of 0.326 m and it is statistically significant. You are choosing
-            not to <em>use</em> it, because 0.13% of the variation is not worth a dimension. <strong>Failing to matter
-            and failing to exist are different findings.</strong></p>
+          <p style="margin-bottom:0">E has an effect of 0.483 m and came out significant here. You are choosing not
+            to <em>use</em> it, because 0.27% of the variation is not worth a dimension. <strong>Failing to matter and
+            failing to exist are different findings</strong> — and at this sample size, so is failing to be
+            <em>found</em>.</p>
         </div>
         <div class="panel">
           <h4>Cost so far</h4>
           <div class="stat">
-            <div><div class="v">156</div><div class="l">Shots fired</div></div>
+            <div><div class="v">56</div><div class="l">Shots fired</div></div>
             <div><div class="v">5 → 3</div><div class="l">Factors live</div></div>
+            <div><div class="v vary">2</div><div class="l">Diagnostics, from 4 runs</div></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Take away</b><p>Runs buy resolution. Exercise 2 spent 96 shots and bought exactly one
-      thing: the right to believe its own coefficients.</p></div>
+    <div class="keyline"><b>Take away</b><p>Runs buy resolution, and 32 shots bought it in full. The four that
+      checked the work cost 13% more and were the only repeated setting in the exercise.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Be explicit that fixing D rather than C is a judgement call. Their contributions differ by under a
@@ -2633,20 +2806,20 @@ then add one run with every factor low.</span>
     <div class="n">04</div>
     <h2>Exercise 3 · Response surface</h2>
     <p>Three factors, three levels, a curved model — and a target rather than a maximum. Then the discovery that the
-      target does not have one answer, and that the leftover freedom is worth something.</p>
+      target does not have one answer, and that this experiment cannot tell you which of them to take.</p>
     <div class="agenda chips">
       <span class="chip on">Box-Behnken · 15 runs</span>
-      <span class="chip on">15 replicates · 225 shots</span>
+      <span class="chip on">1 replicate · 15 shots</span>
       <span class="chip on">Seed 3003</span>
       <span class="chip on">Target 10.00 m</span>
-      <span class="chip on">Variation as Y₂</span>
+      <span class="chip a">Variation as Y₂ — unavailable</span>
       <span class="chip on">150 min</span>
     </div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p>This part covers Labs 3, 4 and 5 of the workbook and needs about two and a half hours. All of it runs on
-      <em>one</em> data set — collect the 225 shots once, at the start, and use them for the mean model, the variation
-      model and the optimisation.</p>
+    <p>This part covers Labs 3, 4 and 5 of the workbook. It is markedly shorter here, because Lab 4 has no data.
+      All of it runs on <em>one</em> data set — 15 shots, collected once — which serves the mean model and the
+      optimisation. The variation model has nothing to run on.</p>
   </aside>
 </article>
 
@@ -2657,7 +2830,7 @@ then add one run with every factor low.</span>
     <div class="body cols c-wide-r">
       <div>
         <figure>
-          <svg viewBox="0 0 300 210" role="img" aria-label="A domed response curve with a straight line fitted through its two endpoints. The line matches at the corners but under-predicts the centre by 0.72 metres.">
+          <svg viewBox="0 0 300 210" role="img" aria-label="A domed response curve with a straight line fitted through its two endpoints. The line matches at the corners but under-predicts the centre by 0.85 metres.">
             <line x1="34" y1="170" x2="272" y2="170" class="ax"/>
             <line x1="34" y1="20" x2="34" y2="170" class="ax"/>
             <text class="lbl" x="30" y="188">low</text>
@@ -2672,7 +2845,7 @@ then add one run with every factor low.</span>
             <circle cx="155" cy="74" r="5.5" fill="var(--vary)"/>
             <circle cx="155" cy="108" r="4" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>
             <line x1="155" y1="78" x2="155" y2="104" stroke="var(--alarm)" stroke-width="1.6"/>
-            <text class="val" x="163" y="96" fill="var(--alarm)">0.72 m</text>
+            <text class="val" x="163" y="96" fill="var(--alarm)">0.85 m</text>
 
             <text class="lbl" x="52" y="160">corner</text>
             <text class="lbl" x="228" y="66">corner</text>
@@ -2687,10 +2860,10 @@ then add one run with every factor low.</span>
           <h4>The curvature test, from centre points</h4>
           <div class="tw"><table>
             <tbody>
-              <tr><td style="width:56%">Mean of 16 factorial runs</td><td class="n">7.445 m</td></tr>
-              <tr><td>Mean of 4 centre runs</td><td class="n">8.169 m</td></tr>
-              <tr class="flag"><td>Difference</td><td class="n">−0.724 m</td></tr>
-              <tr class="flag"><td><em>F</em> (1, 11) · <em>p</em></td><td class="n">133.8 · 1.7 × 10⁻⁷</td></tr>
+              <tr><td style="width:56%">Mean of 16 factorial runs</td><td class="n">7.433 m</td></tr>
+              <tr><td>Mean of 4 centre runs</td><td class="n">8.282 m</td></tr>
+              <tr class="flag"><td>Difference</td><td class="n">−0.849 m</td></tr>
+              <tr class="flag"><td><em>F</em> (1, 3) · <em>p</em></td><td class="n">69.3 · 3.6 × 10⁻³</td></tr>
             </tbody>
           </table></div>
           <p style="margin:10px 0 0">The centre sits <strong>above</strong> the corner average, so the surface is
@@ -2710,9 +2883,25 @@ then add one run with every factor low.</span>
     <p class="say">The picture is the argument. A straight line through two points on a curve fits both points
       perfectly — residuals of zero at every design point — and is wrong everywhere between them. No diagnostic
       computed from the corners can detect this, which is precisely why centre points exist.</p>
-    <p>The centre-point test is beautifully cheap: a handful of runs at coded zero, and the comparison is just "did the
-      centre land where the plane said it would?" Note it does not tell you <em>which</em> factor is curved, only that
-      curvature is present somewhere. Locating it needs the three-level design.</p>
+    <p>The centre-point test is beautifully cheap, and in this revision it is the <em>only</em> inferential test in
+      Exercise 2 that still runs. Say why explicitly: the four centre runs are four replicates of each other, so this
+      test carries its own pure error. Four centre runs fired once each gives 3 degrees of freedom — which is exactly
+      what 4 − 1 describes. In the replicated course those same four runs are fired three times each: 12 observations,
+      11 df, and the same test at <em>F</em>(1, 11) = 133.8.</p>
+    <p>That comparison is worth putting on the board, because it is the cleanest illustration in the deck of what a
+      replicate actually buys: identical design, identical machine, identical conclusion — and a denominator with
+      nearly four times the degrees of freedom behind it.</p>
+    <p>Then push it further, because this is the constructive result of the whole revision. Those four centre shots
+      give <em>s</em> = 0.182 m on 3 df, and 0.182 m is a <strong>real noise estimate</strong> — the true shot-to-shot
+      SD is about 0.16. Use it as the denominator for the de-aliasing design's effects and 13 of 15 clear significance.
+      Compare with what the alternatives manage: pooling interactions into the residual gives an error SD of 1.3 to
+      2.4 m and finds 2 to 5 of them; Lenth's PSE gives 1.2 m and finds one.</p>
+    <p class="say">The sentence that follows: <strong>degrees of freedom can be manufactured; an honest error term
+      cannot.</strong> Pooling and Lenth both build a denominator out of signal you decided to ignore. Only replication
+      builds one out of noise — and four replicated centre runs did more for this design than any reduced model.</p>
+    <p class="ask">So the practical rule, and it is the most useful thing a student can take back to work: <em>if you
+      must run unreplicated, replicate the centre.</em> A handful of runs buys back pure error, the curvature test, and
+      a denominator for every effect in the design.</p>
     <p>Point out the direction. The centre is <em>above</em> the corner average, so the surface is domed and a plane
       under-predicts the middle. Ask what that would do to a team aiming at 10 m using the Exercise 2 model: they would
       systematically overshoot, because the model tells them they need more energy than they do.</p>
@@ -2816,17 +3005,17 @@ then add one run with every factor low.</span>
 <article class="item" data-part="4">
   <div class="holder"><section class="slide">
     <div class="eyebrow"><span class="tag">Exercise 3</span><span class="tag a">New factor window</span><span>Run card</span></div>
-    <h2 class="t">Fire it — 225 shots</h2>
+    <h2 class="t">Fire it — 15 shots</h2>
     <div class="body cols c2">
       <div>
         <div class="runcard" style="margin-bottom:12px">
           <header>Simulator settings</header>
           <dl>
             <dt>Load design</dt><dd>Box-Behnken, 3 factors (15 runs)</dd>
-            <dt>Replicates</dt><dd>15</dd>
+            <dt>Replicates</dt><dd>1</dd>
             <dt>Seed</dt><dd>3003</dd>
             <dt>Noise</dt><dd>1× — Normal</dd>
-            <dt>Total shots</dt><dd>225</dd>
+            <dt>Total shots</dt><dd>15</dd>
             <dt>D · Arm hole</dt><dd>fixed at 3.0</dd>
             <dt>E · Pin</dt><dd>fixed at 2.25</dd>
           </dl>
@@ -2849,49 +3038,50 @@ then add one run with every factor low.</span>
           </tbody>
         </table></div>
         <div class="panel vary" style="margin-top:14px">
-          <h4>Why 15 replicates when 3 sufficed before?</h4>
-          <p>Because you now need <strong>two</strong> statistics from every run. A mean over <em>n</em> shots has
-            standard error σ/√n and is well behaved at <em>n</em> = 3. A standard deviation is far noisier and needs
-            far more data.</p>
-          <p style="margin-bottom:0">The mean model would be fine on 3 replicates. <strong>The variation model is what
-            you are paying for.</strong></p>
+          <h4>What 15 replicates would have bought</h4>
+          <p>The replicated course fires each run 15 times, because it needs <strong>two</strong> statistics per run. A
+            mean is well behaved at <em>n</em> = 3. A standard deviation is far noisier and needs far more.</p>
+          <p style="margin-bottom:0">So the mean model you are about to fit will be fine on one shot per run.
+            <strong>The variation model is the thing those 210 extra shots were paying for</strong> — and it is the
+            thing you will not have.</p>
         </div>
       </div>
     </div>
-    <div class="keyline v"><b>Record both</b><p>For each of the 15 runs compute the mean <em>and</em> the standard
-      deviation of its 15 shots. You will fit two separate models to them.</p></div>
+    <div class="keyline a"><b>Record what you can</b><p>For each of the 15 runs you have one distance. Try to compute
+      its standard deviation before moving on — the failure is the point, and it should happen with the machine in
+      front of you.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Make the class state, out loud, what coded −1 means for factor A in this exercise (150°) versus in
       Exercise 1 (130°). Re-centring after screening is completely standard practice — you narrow to the region worth
       mapping in detail — but it silently invalidates any comparison of coded coefficients between phases.</p>
-    <p>The replication economics are worth showing if you have time. Re-running this design at different replicate
-      counts and scoring the resulting robust recommendation against the best achievable σ: 6 replicates lands 12.2%
-      above the optimum, 10 replicates 2.5%, 15 replicates 2.7%, 30 replicates 3.1%. <strong>The decision stabilises at
-      around ten replicates</strong>, well before the adjusted R² of the variation model looks respectable. Worth
-      drawing out: the statistic and the decision improve on different schedules.</p>
-    <p>225 shots takes a moment. Use the wait to have teams write down their predicted signs for the three quadratic
-      terms. The physics slide in Part 1 told them B is the one with an optimum.</p>
+    <p>The replication economics are the heart of this revision and belong here. Re-running this design at different
+      replicate counts and scoring the resulting robust recommendation against the best achievable σ: <strong>1
+      replicate has no recommendation to score at all</strong>; 6 replicates lands 12.2% above the optimum, 10
+      replicates 2.5%, 15 replicates 2.7%. The decision stabilises at around ten replicates — and below two it does not
+      exist.</p>
+    <p>15 shots animates in seconds. Use the time you save to have teams write down their predicted signs for the
+      three quadratic terms. The physics slide in Part 1 told them B is the one with an optimum.</p>
   </aside>
 </article>
 
 <article class="item" data-part="4">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag">Exercise 3</span><span>The mean model · seed 3003 · 225 shots</span></div>
+    <div class="eyebrow"><span class="tag">Exercise 3</span><span>The mean model · seed 3003 · 15 shots</span></div>
     <h2 class="t">The fitted surface</h2>
     <div class="body cols c-wide-l">
       <div>
         <div class="eq" style="margin-bottom:14px">
-Distance = <span class="c">9.6332</span>
-         + 2.4544·A + 2.0665·B + 2.0531·C
-         + 1.0496·AB + 0.5789·AC + 0.6759·BC
-         − 0.2371·A² <span class="c">− 0.5072·B²</span> − 0.0684·C²
+Distance = <span class="c">9.4107</span>
+         + 2.4633·A + 2.1655·B + 2.0765·C
+         + 1.0009·AB + 0.5032·AC + 0.6373·BC
+         − 0.0775·A² <span class="c">− 0.3226·B²</span> + 0.0010·C²
         </div>
         <div class="stat">
-          <div><div class="v mean">0.9937</div><div class="l">R²</div></div>
-          <div><div class="v mean">0.9935</div><div class="l">Adj R²</div></div>
-          <div><div class="v">0.234</div><div class="l">Resid SD (m)</div></div>
-          <div><div class="v">215</div><div class="l">Resid df</div></div>
+          <div><div class="v mean">0.9978</div><div class="l">R²</div></div>
+          <div><div class="v mean">0.9940</div><div class="l">Adj R²</div></div>
+          <div><div class="v">0.235</div><div class="l">Resid SD (m)</div></div>
+          <div><div class="v">5</div><div class="l">Resid df</div></div>
         </div>
         <p style="font-size:13.5px;color:var(--muted);margin:14px 0 0">Coefficients in coded units. Remember the
           effect is twice the coefficient — but for quadratic terms that rule does not apply, so quote coefficients
@@ -2901,36 +3091,40 @@ Distance = <span class="c">9.6332</span>
         <div class="tw"><table>
           <thead><tr><th>Term</th><th class="n">Coefficient</th><th class="n">%</th></tr></thead>
           <tbody>
-            <tr class="lead"><td class="k">A</td><td class="n">2.4544</td><td class="n">38.39</td></tr>
-            <tr><td class="k">B</td><td class="n">2.0665</td><td class="n">27.21</td></tr>
-            <tr><td class="k">C</td><td class="n">2.0531</td><td class="n">26.86</td></tr>
-            <tr><td class="k">AB</td><td class="n">1.0496</td><td class="n">3.51</td></tr>
-            <tr><td class="k">BC</td><td class="n">0.6759</td><td class="n">1.46</td></tr>
-            <tr><td class="k">AC</td><td class="n">0.5789</td><td class="n">1.07</td></tr>
-            <tr class="flag"><td class="k">B²</td><td class="n">−0.5072</td><td class="n">0.76</td></tr>
-            <tr class="dim"><td class="k">A²</td><td class="n">−0.2371</td><td class="n">0.17</td></tr>
-            <tr class="dim"><td class="k">C²</td><td class="n">−0.0684</td><td class="n">0.01</td></tr>
+            <tr class="lead"><td class="k">A</td><td class="n">2.4633</td><td class="n">37.96</td></tr>
+            <tr><td class="k">B</td><td class="n">2.1655</td><td class="n">29.34</td></tr>
+            <tr><td class="k">C</td><td class="n">2.0765</td><td class="n">26.98</td></tr>
+            <tr><td class="k">AB</td><td class="n">1.0009</td><td class="n">3.13</td></tr>
+            <tr><td class="k">BC</td><td class="n">0.6373</td><td class="n">1.27</td></tr>
+            <tr><td class="k">AC</td><td class="n">0.5032</td><td class="n">0.79</td></tr>
+            <tr class="flag"><td class="k">B²</td><td class="n">−0.3226</td><td class="n">0.30</td></tr>
+            <tr class="dim"><td class="k">A²</td><td class="n">−0.0775</td><td class="n">0.02</td></tr>
+            <tr class="dim"><td class="k">C²</td><td class="n">0.0010</td><td class="n">0.00</td></tr>
           </tbody>
         </table></div>
         <div class="panel mean" style="margin-top:14px">
           <h4>Q3.3 · the curvature has an address</h4>
-          <p style="margin-bottom:0">B² is much the largest quadratic term. <strong>It is the stop angle that bends the
-            surface</strong> — launch angle has an optimum, while pull-back and band tension are close to monotonic
-            across this window. Exactly what the ballistic trigonometry predicted in Part 1.</p>
+          <p style="margin-bottom:0">B² is much the largest quadratic term, and the only one that reaches significance.
+            <strong>It is the stop angle that bends the surface</strong> — exactly what the ballistic trigonometry
+            predicted in Part 1.</p>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Check it</b><p>Predicted at the centre: 9.633 m. The three observed centre-run means were
-      9.628, 9.694 and 9.578 m.</p></div>
+    <div class="keyline"><b>Check it</b><p>Predicted at the centre: 9.411 m. The three centre shots were 9.101, 9.640
+      and 9.491 m — a spread of 0.54 m between three points that are the same setting.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Close the loop with Part 1 explicitly. Back on the physics slide you pointed at
       <code>cos α</code> and <code>sin α</code> in step 4 and said the launch angle would turn out to have an optimum.
-      Here it is, measured: B² is seven times the size of A² and fifty times C². The experiment recovered the
-      mechanics.</p>
-    <p>Note that C² has <em>p</em> = 0.031 — statistically significant, contributing 0.01%. Yet another instance of the
-      Exercise 2 lesson, and a good moment to ask whether anyone would keep it. With 225 shots the test can resolve
-      terms far below anything that matters.</p>
+      Here it is, measured: B² is four times the size of A² and the only quadratic term that reaches significance
+      (<em>p</em> = 0.046). Fifteen shots recovered the mechanics.</p>
+    <p>Dwell on the "Check it" line, because it is the whole revision in one row. Three shots at the identical centre
+      setting came back 9.101, 9.640, 9.491 — half a metre apart. Those three numbers are the only direct look at the
+      machine's noise anywhere in this experiment, and they exist only because the Box-Behnken design happens to
+      include three centre runs. Ask the room what they would have if it did not.</p>
+    <p>Note also what 15 shots bought: the same three main effects in the same order, the same AB interaction, the
+      same B² curvature. <strong>The mean model is essentially intact.</strong> Say that plainly — the revision is not
+      an argument that unreplicated designs are useless, and overstating it will lose the room.</p>
     <p>Warn about the effect-is-twice-the-coefficient rule. It applies to linear and interaction terms in coded units
       but not to squared terms, which is why this slide quotes coefficients rather than effects. Software output
       differs on this and students compare across tools.</p>
@@ -2943,61 +3137,62 @@ Distance = <span class="c">9.6332</span>
 <article class="item" data-part="4">
   <div class="holder"><section class="slide">
     <div class="eyebrow"><span class="tag">Exercise 3</span><span class="tag a">Read this one carefully</span><span>Diagnostics</span></div>
-    <h2 class="t">Statistically inadequate, practically excellent</h2>
-    <p class="sub">The lack-of-fit test rejects the model. You should use the model anyway — and be able to say exactly
-      why that is not a contradiction.</p>
+    <h2 class="t">The test passes. That is the problem.</h2>
+    <p class="sub">The lack-of-fit test accepts this model. On the identical design, the replicated course rejected it.
+      Nothing about the surface changed.</p>
     <div class="body cols c2">
       <div>
         <div class="tw"><table>
           <thead><tr><th>Lack of fit</th><th class="n">Value</th></tr></thead>
           <tbody>
-            <tr class="flag"><td><em>F</em> (3, 212)</td><td class="n">4.87</td></tr>
-            <tr class="flag"><td><em>p</em></td><td class="n">0.0027</td></tr>
-            <tr><td>Residual SD</td><td class="n">0.234 m</td></tr>
-            <tr><td>Confirmation runs land within</td><td class="n">0.12 m</td></tr>
+            <tr><td><em>F</em> (3, 2)</td><td class="n">0.52</td></tr>
+            <tr class="flag"><td><em>p</em></td><td class="n">0.711</td></tr>
+            <tr><td>Residual SD</td><td class="n">0.235 m</td></tr>
+            <tr class="flag"><td>Pure error df</td><td class="n">2</td></tr>
           </tbody>
         </table></div>
         <div class="panel alarm" style="margin-top:14px">
-          <h4>Why it fails</h4>
-          <p style="margin-bottom:0">Not because the model is bad. Because with <strong>225 shots</strong> pure error is
-            pinned down so tightly that a practically irrelevant inadequacy becomes detectable. Precision in the
-            yardstick, not error in the model.</p>
+          <h4>Why it passes</h4>
+          <p style="margin-bottom:0">Not because the model is good. Because pure error rests on <strong>three centre
+            shots</strong> — two degrees of freedom — and a test with two df in the denominator cannot detect anything
+            at all. It did not examine the model and approve it. It looked, saw nothing, and said so.</p>
         </div>
       </div>
       <div>
         <div class="panel mean" style="margin-bottom:12px">
-          <h4>The same test, the opposite verdict</h4>
-          <p style="margin-bottom:0">In Exercise 2, lack of fit gave <em>F</em> = 20.5 and we <strong>rejected the
-            model</strong> — the plane was missing the centre by 0.72 m, a real engineering error. Here <em>F</em> =
-            4.87 and we <strong>keep the model</strong> — it predicts to within 0.12 m on settings it has never seen.
-            The statistic is the same tool; the decision comes from the size of the miss.</p>
+          <h4>The same design, the opposite verdict</h4>
+          <p style="margin-bottom:0">Fifteen shots: <em>F</em> = 0.52, <em>p</em> = 0.71, "no significant lack of fit".
+            The same 15 design points at 15 shots each: <em>F</em> = 4.87, <em>p</em> = 0.0027, <strong>significant
+            lack of fit</strong>. Same machine, same model, same inadequacy. Only the denominator's degrees of freedom
+            moved — from 212 to 2.</p>
         </div>
         <div class="panel">
-          <h4>What to write in the report</h4>
-          <p style="margin-bottom:0">Report the failed test. State the residual standard deviation, 0.234 m. State the
-            confirmation error, 0.12 m. State the tolerance the model must meet. Then justify using it.
-            <strong>Reporting it and understanding it is the professional standard — hiding it is not.</strong></p>
+          <h4>Which failure is more dangerous?</h4>
+          <p style="margin-bottom:0">Ask the room directly. Exercise 2's saturated design <em>refused</em> to give a
+            <em>p</em>-value — obstructive, and honest about it. This one hands over a comfortable 0.711.
+            <strong>A test with no power does not stay silent. It returns "fine".</strong></p>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Take away</b><p>A significance test answers a statistical question. Whether to use the model
-      is an engineering question, and only you can answer it.</p></div>
+    <div class="keyline a"><b>Take away</b><p>A passing test and an untested model look identical on the page. The
+      only way to tell them apart is to know how many degrees of freedom were behind the denominator.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">This is the best discussion in the course and it is worth protecting time for. Students arrive
-      believing that a significant lack of fit means "throw the model away". Here that rule gives the wrong answer, and
-      working out why forces them to separate statistical from practical significance in a setting where it actually
-      changes the decision.</p>
-    <p>The comparison with Exercise 2 is what makes it teachable rather than relativist. Both models failed the same
-      test. One failure mattered and one did not, and the difference is not in the <em>p</em>-value — it is in the size
-      of the prediction error relative to what the model is being asked to do. A 0.72 m systematic miss on a 10 m
-      target is 7% and fatal. A 0.12 m confirmation error is 1.2% and fine.</p>
-    <p>Note the mechanism behind the paradox, because it generalises well beyond this course: increasing the sample
-      size increases the <em>power</em> of the lack-of-fit test without changing the model's adequacy at all. Run the
-      same design at 3 replicates and the test passes. The model did not improve; the microscope got weaker.</p>
-    <p class="ask">Ask: "What would make you reject this model?" Good answers: a confirmation run outside the
-      confidence interval, a residual pattern with structure in it, or a tolerance tighter than about 0.25 m. All are
-      about consequences, not about <em>p</em>.</p>
+      believing that a non-significant test means "the model is fine". Here that rule gives the wrong answer, and
+      working out why is the most transferable thing in the revision.</p>
+    <p>Put both verdicts on the board and make the class find the difference: <em>F</em>(3, 2) = 0.52, <em>p</em> =
+      0.71 here; <em>F</em>(3, 212) = 4.87, <em>p</em> = 0.0027 with replication. Identical design points, identical
+      surface, identical model. The only thing that moved is the pure-error degrees of freedom, from 2 to 212.</p>
+    <p>The mechanism generalises far beyond this course, and it runs in both directions. More replication raises the
+      <em>power</em> of the lack-of-fit test without changing the model's adequacy at all — which is why the replicated
+      course fails a model it then sensibly keeps. Less replication lowers that power to nothing — which is why this
+      one passes a model with exactly the same flaw. <strong>Neither <em>p</em>-value is about the model.</strong></p>
+    <p class="say">The sentence to leave them with: <em>a test you have not powered is not evidence of absence; it is
+      absence of evidence, printed in the same font.</em></p>
+    <p class="ask">Ask: "What would make you reject this model?" Good answers are unchanged and still work without any
+      <em>p</em>-value at all: a confirmation run outside the interval, structure in the residuals, or a tolerance
+      tighter than about 0.25 m. All are about consequences. Note that they are now the <em>only</em> tools left.</p>
   </aside>
 </article>
 
@@ -3085,14 +3280,14 @@ Distance = <span class="c">9.6332</span>
 
 <article class="item" data-part="4">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag v">Exercise 3</span><span>The second response</span></div>
-    <h2 class="t">Same distance, different scatter</h2>
-    <p class="sub">Fifteen runs, each with a measured standard deviation. Plotting <em>s</em> against the mean shows
-      immediately that repeatability is not determined by distance.</p>
+    <div class="eyebrow"><span class="tag a">Exercise 3</span><span>The second response</span></div>
+    <h2 class="t">The response that is not there</h2>
+    <p class="sub">Fifteen runs, each fired once. A standard deviation needs at least two observations. There is no
+      second response in this experiment — not a weak one, not a noisy one. None.</p>
     <div class="body cols c-wide-l">
       <div>
         <figure>
-          <svg viewBox="0 0 470 245" role="img" aria-label="Scatter of within-run standard deviation against mean distance for fifteen runs. Spread grows with distance but two runs at about 8.3 metres differ nearly twofold in standard deviation.">
+          <svg viewBox="0 0 470 245" role="img" aria-label="An empty scatter plot of within-run standard deviation against mean distance. Fifteen ticks sit on the horizontal axis because each run produced one distance and no spread.">
             <line x1="70" y1="30" x2="70" y2="200" class="ax"/>
             <line x1="70" y1="200" x2="440" y2="200" class="ax"/>
             <line x1="70" y1="155" x2="440" y2="155" class="grid"/>
@@ -3102,78 +3297,68 @@ Distance = <span class="c">9.6332</span>
             <text class="lbl" x="30" y="159">0.15</text>
             <text class="lbl" x="30" y="114">0.25</text>
             <text class="lbl" x="30" y="69">0.35</text>
-            <text class="ttl" x="70" y="20">Within-run s (m)</text>
-            <text class="lbl" x="64" y="218">5</text>
-            <text class="lbl" x="244" y="218">10</text>
-            <text class="lbl" x="424" y="218">15</text>
-            <text class="lbl" x="180" y="236">Mean distance (m)</text>
+            <text class="ttl" x="0" y="20">Within-run s (m)</text>
+            <text class="lbl" x="360" y="222">mean distance (m)</text>
 
-            <g fill="var(--vary)">
-              <circle cx="87" cy="156" r="5"/><circle cx="158" cy="124" r="5"/>
-              <circle cx="187" cy="116" r="5"/><circle cx="408" cy="68" r="5"/>
-              <circle cx="81" cy="180" r="5"/><circle cx="218" cy="166" r="5"/>
-              <circle cx="412" cy="72" r="5"/><circle cx="93" cy="175" r="5"/>
-              <circle cx="196" cy="125" r="5"/><circle cx="388" cy="64" r="5"/>
-              <circle cx="237" cy="126" r="5"/><circle cx="239" cy="116" r="5"/>
-              <circle cx="235" cy="143" r="5"/>
+            <g fill="var(--muted)" fill-opacity=".55">
+              <circle cx="96" cy="200" r="4"/><circle cx="131" cy="200" r="4"/><circle cx="147" cy="200" r="4"/>
+              <circle cx="178" cy="200" r="4"/><circle cx="190" cy="200" r="4"/><circle cx="203" cy="200" r="4"/>
+              <circle cx="221" cy="200" r="4"/><circle cx="246" cy="200" r="4"/><circle cx="268" cy="200" r="4"/>
+              <circle cx="299" cy="200" r="4"/><circle cx="327" cy="200" r="4"/><circle cx="351" cy="200" r="4"/>
+              <circle cx="379" cy="200" r="4"/><circle cx="402" cy="200" r="4"/><circle cx="424" cy="200" r="4"/>
             </g>
-
-            <circle cx="188" cy="94" r="7" fill="var(--alarm)" stroke="var(--surface)" stroke-width="2"/>
-            <circle cx="192" cy="156" r="7" fill="var(--alarm)" stroke="var(--surface)" stroke-width="2"/>
-            <line x1="190" y1="101" x2="190" y2="149" stroke="var(--alarm)" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text class="val" x="202" y="90" fill="var(--alarm)">s = 0.282 at 8.27 m</text>
-            <text class="val" x="202" y="162" fill="var(--alarm)">s = 0.146 at 8.39 m</text>
+            <text class="val" x="120" y="70" fill="var(--alarm)">every run reports s = —</text>
+            <text class="val" x="120" y="90" fill="var(--muted)">fifteen points, all on the axis</text>
           </svg>
-          <figcaption>Two runs land within 12 cm of each other. One scatters nearly twice as much as the other.</figcaption>
+          <figcaption>The horizontal axis is fine. The vertical axis has no data in it at all.</figcaption>
         </figure>
       </div>
       <div>
-        <div class="eq v" style="margin-bottom:12px">
-ln(s) = −1.6214
-      + 0.2504·A + 0.2093·B <span class="c">+ 0.3611·C</span>
-      − 0.0038·AB + 0.1355·AC − 0.1260·BC
+        <div class="panel alarm" style="margin-bottom:12px">
+          <h4>What the replicated course found here</h4>
+          <p style="margin-bottom:0">Two runs landing within 12 cm of each other, one scattering nearly twice as much:
+            <em>s</em> = 0.282 m at 8.27 m against 0.146 m at 8.39 m. That pair is the fact robust design rests on.
+            This experiment fired both runs and recorded neither number.</p>
         </div>
-        <div class="tw"><table>
-          <thead><tr><th>Term</th><th class="n">%</th><th class="n"><em>p</em></th></tr></thead>
-          <tbody>
-            <tr class="lead"><td class="k">C · bungee</td><td class="n">42.7</td><td class="n">0.0020</td></tr>
-            <tr><td class="k">A · pull-back</td><td class="n">20.5</td><td class="n">0.0141</td></tr>
-            <tr><td class="k">B · stop angle</td><td class="n">14.3</td><td class="n">0.0310</td></tr>
-            <tr class="dim"><td class="k">AC</td><td class="n">3.0</td><td class="n">0.266</td></tr>
-            <tr class="dim"><td class="k">BC</td><td class="n">2.6</td><td class="n">0.299</td></tr>
-          </tbody>
-        </table></div>
-        <div class="panel vary" style="margin-top:12px">
-          <h4>Q4.1 · the two responses have different leaders</h4>
-          <p style="margin-bottom:0">The <em class="hl">mean</em> is led by <strong>A</strong> at 38.4%. The
-            <em class="hv">variation</em> is led by <strong>C</strong> at 42.7%. That mismatch is not a curiosity —
-            <strong>it is what makes robust optimisation possible at all.</strong></p>
+        <div class="panel" style="margin-bottom:12px">
+          <h4>The machine has not changed</h4>
+          <p style="margin-bottom:0">σ still varies nearly twofold across this space. <strong>The variation is still
+            there — only the instrument that could see it is missing.</strong></p>
+        </div>
+        <div class="panel vary">
+          <h4>Q4.1 · the expensive loss</h4>
+          <p style="margin-bottom:0">The mean model survived on 15 shots. The variation model needed 15 shots
+            <em>per run</em>. <strong>That asymmetry is why replication cannot be economised away.</strong></p>
         </div>
       </div>
     </div>
+    <div class="keyline a"><b>Take away</b><p>An unreplicated design does not measure variation badly. It does not
+      measure it at all — and it will not warn you, because there is no column where the warning would go.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">Why model ln(<em>s</em>) rather than <em>s</em>? Two reasons, both worth stating. A standard
-      deviation cannot go below zero, and a linear model has no idea about that — it will happily predict negative
-      spread near the edge of the region. And effects on variation tend to be multiplicative rather than additive.
-      Logging fixes both, and you back-transform with <em>s</em> = exp(prediction).</p>
-    <p>Q4.2 is worth asking here: why is this model's adjusted R² only 0.71 when the mean model's was 0.99, from the
-      same 225 shots? Because the mean model was fitted to 225 individual observations, while this one is fitted to
-      <strong>15 standard deviations</strong>, each estimated from only 15 shots. A standard deviation is an
-      intrinsically noisy statistic. The data set did not get worse; the response did.</p>
-    <p>The different-leaders result is the hinge of the whole course. If A led both responses, the target would fix A
-      and there would be no freedom left to exploit. Because C dominates variation while A dominates the mean, you can
-      trade along the ridge — hold the mean at 10 m and still choose how much the shots scatter.</p>
-    <p>Draw attention to the two highlighted points in the scatter. They differ in distance by 12 cm and in standard
-      deviation by 94%. No formula relating σ to distance could produce that. It is emergent from the settings, which
-      is what the noise architecture in Part 1 was built to deliver.</p>
+    <p class="say">Do not skip this slide because it has no data on it. The empty axis <em>is</em> the lesson, and an
+      empty chart in the middle of a deck full of results is the most memorable image you will show all day.</p>
+    <p>Run it as a request. Ask the class to compute <em>s</em> for run 1. Wait. Let somebody say it out loud: you
+      cannot, there is one number. Then ask for run 2, and run 3, and let the pattern land.</p>
+    <p>Then show them what they are missing, using the panel on the right — the 0.282 against 0.146 pair at
+      essentially the same distance. That pair was measured on this exact design, at these exact settings, in the
+      replicated course. Their machine did the same thing today. They have no record of it.</p>
+    <p>The asymmetry in the bottom panel is the quantitative heart of the argument, and it is worth writing down: the
+      mean needed about 3 shots per run and was fine on 1; the standard deviation needed 15. A mean of <em>n</em>
+      observations has standard error σ/√n; a standard deviation from <em>n</em> observations has a relative standard
+      error of roughly 1/√(2(n−1)), which is why <em>s</em> from three shots is nearly useless and <em>s</em> from one
+      does not exist.</p>
+    <p class="ask">Ask: "Your process engineer says the line is running fine, average is on target. What have they not
+      told you?" Every good answer is a version of this slide.</p>
   </aside>
 </article>
 
 <article class="item" data-part="4">
   <div class="holder"><section class="slide">
-    <div class="eyebrow"><span class="tag v">Exercise 3</span><span>Optimise, then confirm</span></div>
-    <h2 class="t">Two machines that both hit 10 m</h2>
+    <div class="eyebrow"><span class="tag a">Exercise 3</span><span>Optimise, then confirm</span></div>
+    <h2 class="t">397 machines that all hit 10 m</h2>
+    <p class="sub">Solving the mean model for the target does not return an answer. It returns a ridge, and this
+      experiment has nothing to choose along it with.</p>
     <div class="body">
       <div class="tw"><table>
         <thead><tr>
@@ -3183,25 +3368,26 @@ ln(s) = −1.6214
         </tr></thead>
         <tbody>
           <tr class="lead">
-            <td><strong>Most repeatable</strong></td>
-            <td class="n">0.989</td><td class="n">0.388</td><td class="n">−1.000</td>
-            <td class="n">189.8°</td><td class="n">106.8°</td><td class="n">1.50</td>
-            <td class="n">0.176 m</td><td class="n">9.894 m</td><td class="n">0.198 m</td>
+            <td><strong>Best end of the ridge</strong></td>
+            <td class="n">0.500</td><td class="n">1.000</td><td class="n">−1.000</td>
+            <td class="n">180.0°</td><td class="n">112.0°</td><td class="n">1.50</td>
+            <td class="n">—</td><td class="n">9.696 m</td><td class="n">0.192 m</td>
           </tr>
           <tr class="flag">
-            <td><strong>Least repeatable</strong></td>
-            <td class="n">0.987</td><td class="n">−0.811</td><td class="n">0.501</td>
-            <td class="n">189.7°</td><td class="n">96.6°</td><td class="n">3.75</td>
-            <td class="n">0.289 m</td><td class="n">9.859 m</td><td class="n">0.372 m</td>
+            <td><strong>Worst end of the ridge</strong></td>
+            <td class="n">0.800</td><td class="n">−0.950</td><td class="n">0.950</td>
+            <td class="n">186.0°</td><td class="n">95.4°</td><td class="n">4.43</td>
+            <td class="n">—</td><td class="n">9.710 m</td><td class="n">0.322 m</td>
           </tr>
         </tbody>
       </table></div>
       <div class="cols c3" style="margin-top:22px">
         <div class="panel mean">
           <h4>Q4.3 · what the settings do</h4>
-          <p style="margin-bottom:0">The robust one draws the arm far back against a <strong>soft</strong> band and
-            releases <strong>late</strong>, lofting the ball. The fragile one uses a stiffer band and releases
-            <strong>early</strong>, firing flat and fast. Both land at 10 m.</p>
+          <p style="margin-bottom:0">The good one releases <strong>late</strong> against a <strong>soft</strong> band,
+            lofting the ball. The bad one uses a stiff band and releases <strong>early</strong>, firing flat and fast.
+            Both land at 10 m, and <strong>the Predicted s column is empty</strong> because there is no model to fill
+            it.</p>
         </div>
         <div class="panel alarm">
           <h4>Q4.4 · the mechanism</h4>
@@ -3212,36 +3398,37 @@ ln(s) = −1.6214
         <div class="panel vary">
           <h4>The result</h4>
           <div class="stat" style="gap:18px">
-            <div><div class="v vary">47%</div><div class="l">Observed s cut</div></div>
-            <div><div class="v">10 m</div><div class="l">Both, on target</div></div>
+            <div><div class="v alarm">40%</div><div class="l">s cut, if you knew</div></div>
+            <div><div class="v alarm">397</div><div class="l">Equally good answers</div></div>
           </div>
-          <p style="margin:12px 0 0;font-size:13.5px">Same target, same machine, no new hardware. Only the choice of
-            <em>which</em> on-target setting to use.</p>
+          <p style="margin:12px 0 0;font-size:13.5px">You run the optimiser, it returns one of the 397, and you take
+            it. <strong>Which one you get is luck.</strong></p>
         </div>
       </div>
     </div>
-    <div class="keyline v"><b>Be honest about the optimum</b><p>The robust setting sits at <strong>C = −1</strong>, the
-      edge of the tested region. The data says "go softer than we tested" — that is a boundary result, not an interior
-      optimum, and the next experiment should widen the window.</p></div>
+    <div class="keyline a"><b>Where these two came from</b><p>Not from the experiment — it cannot rank them. They are
+      the ends of the ridge as scored by the simulator's true σ, which is instructor-only knowledge. That is precisely
+      the knowledge 225 shots would have bought and 15 did not.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">This is where you reveal the mechanism held back since Part 1. The simulator's stop-angle rebound
-      noise is multiplied by (1 + 0.055 × release velocity): <strong>the arm bounces off the stop less repeatably the
-      harder it arrives.</strong> Nothing in the students' data shows this directly — they had to infer it from a
-      fitted variation model, which is exactly what a real engineer does.</p>
-    <p>Give the room a chance to derive it before you say it. Accept any answer that reasons from "faster arrival
-      implies less consistent release". The physical intuition is worth more than the coefficient.</p>
-    <p>Two honesty points that carry most of the marks in the final report. First, the boundary optimum: C = −1 is the
-      edge of the region, so the correct conclusion is "softer than anything we tested is better, and we should extend
-      the window", not "the optimum band tension is 1.50". Students who report a boundary as an interior optimum lose
-      marks; students who flag it earn them.</p>
-    <p>Second, the confirmation gap. Both settings landed about 0.11–0.14 m short of the predicted 10.00 m — just
-      outside the confidence interval for the robust setting. The model is slightly optimistic near the region
-      boundary, where A ≈ +1 and C = −1. A 1% bias on a 10 m target is usually acceptable; the professional standard is
-      to say so, and to say why you know it.</p>
-    <p class="only"><b>Instructor only</b> — predicted <em>s</em> was 0.176 and observed 0.198, and the true reduction
-      is 34% against the 47% observed. With <em>n</em> = 30 the sampling error of <em>s</em> is roughly 13%, so a gap
-      of that size is expected. If a student's confirmation matches the prediction exactly, be suspicious.</p>
+    <p class="say">Run this slide in two halves, and do not merge them. First half: the experiment's own output.
+      Solve the mean model for 10 m and you get a ridge — 397 grid points inside 2 cm of target. Ask the room how they
+      would choose. Every answer they give (cost, wear, ease of setting) is an answer from outside the data, because
+      the data has nothing to say.</p>
+    <p>Second half: reveal what the choice was worth, using the simulator's true σ. Across that ridge, σ runs from
+      0.200 m to 0.340 m. The team that picks well and the team that picks badly did identical experiments, wrote
+      identical reports, and differ by 40% in scatter forever.</p>
+    <p>Then give them the mechanism they could not have found: the stop-angle rebound noise is multiplied by
+      (1 + 0.055 × release velocity) — <strong>the arm bounces off the stop less repeatably the harder it
+      arrives.</strong> In the replicated course the class infers this from a fitted variation model. Here you simply
+      have to tell them, which is worth naming out loud as the difference between learning something and being told
+      it.</p>
+    <p>Two honesty points for the report. First, both confirmations landed about <strong>0.30 m</strong> short of the
+      predicted 10.00 m, against roughly 0.11 m in the replicated course — a 3% bias on a 10 m target. Some of that is
+      the model and some is where on the ridge you stand, and this experiment cannot separate them either.</p>
+    <p class="ask">Ask the question that should end Exercise 3: "What would you have to run, now, to choose between
+      these two settings?" The answer is replicates — about 15 per run — and they would be buying a second response,
+      not a better first one.</p>
   </aside>
 </article>
 
@@ -3271,75 +3458,74 @@ ln(s) = −1.6214
 <article class="item" data-part="5">
   <div class="holder"><section class="slide">
     <div class="eyebrow"><span class="tag">Part 5</span><span>Power</span></div>
-    <h2 class="t">The same experiment, on four machines</h2>
-    <p class="sub">Identical design, identical seed, identical physics. Only the noise scale changes. Watch what moves
-      and what does not.</p>
+    <h2 class="t">The <em>p</em>-value that stopped listening</h2>
+    <p class="sub">Identical design, identical seed, identical physics. Only the noise scale changes — tenfold, across
+      these four rows. Watch the C column and try to explain it.</p>
     <div class="body cols c-wide-l">
       <div>
         <div class="tw"><table>
           <thead><tr><th class="n">Noise</th><th class="n">Typical s</th><th class="n">E effect</th><th class="n"><em>p</em> for E</th><th class="n">C effect</th><th class="n"><em>p</em> for C</th></tr></thead>
           <tbody>
-            <tr><td class="n">0.5×</td><td class="n">0.064</td><td class="n">0.470</td><td class="n">2.8 × 10⁻¹¹</td><td class="n">2.039</td><td class="n">2.8 × 10⁻²¹</td></tr>
-            <tr><td class="n">1×</td><td class="n">0.127</td><td class="n">0.489</td><td class="n">3.2 × 10⁻⁷</td><td class="n">1.960</td><td class="n">3.1 × 10⁻¹⁶</td></tr>
-            <tr><td class="n">3×</td><td class="n">0.385</td><td class="n">0.568</td><td class="n">5.1 × 10⁻³</td><td class="n">1.640</td><td class="n">6.6 × 10⁻⁸</td></tr>
-            <tr><td class="n">5×</td><td class="n">0.648</td><td class="n">0.651</td><td class="n">4.0 × 10⁻²</td><td class="n">1.315</td><td class="n">3.5 × 10⁻⁴</td></tr>
+            <tr><td class="n">0.5×</td><td class="n">0.079</td><td class="n">1.598</td><td class="n">0.175</td><td class="n">2.473</td><td class="n">0.0858</td></tr>
+            <tr><td class="n">1×</td><td class="n">0.159</td><td class="n">1.571</td><td class="n">0.168</td><td class="n">2.366</td><td class="n">0.0857</td></tr>
+            <tr><td class="n">3×</td><td class="n">0.476</td><td class="n">1.456</td><td class="n">0.136</td><td class="n">1.921</td><td class="n">0.0855</td></tr>
+            <tr><td class="n">5×</td><td class="n">0.792</td><td class="n">1.329</td><td class="n">0.100</td><td class="n">1.450</td><td class="n">0.0862</td></tr>
           </tbody>
         </table></div>
-        <p style="font-size:13px;color:var(--muted);margin:10px 0 0">2<sup>5−1</sup> resolution V, 16 runs × 2
-          replicates, seed 6001.</p>
+        <p style="font-size:13px;color:var(--muted);margin:8px 0 0">2<sup>5−2</sup> res III, 8 runs × 1, seed 6001.
+          The res V design is saturated at one shot per run, so it has no <em>p</em>-value to watch at all.</p>
         <div class="panel alarm" style="margin-top:14px">
           <h4>Empirical power for E, over 500 repeated experiments</h4>
           <div class="tw"><table>
-            <thead><tr><th>Design</th><th class="n">1×</th><th class="n">2×</th><th class="n">3×</th><th class="n">5×</th></tr></thead>
+            <thead><tr><th>Design, at 1× noise</th><th class="n">A</th><th class="n">B</th><th class="n">C</th><th class="n">D</th><th class="n">E</th></tr></thead>
             <tbody>
-              <tr><td>16 runs × 2 · 32 shots</td><td class="n">100%</td><td class="n">77%</td><td class="n">48%</td><td class="n">22%</td></tr>
-              <tr class="lead"><td>16 runs × 6 · 96 shots</td><td class="n">100%</td><td class="n">100%</td><td class="n">90%</td><td class="n">50%</td></tr>
+              <tr class="flag"><td>8 runs × 1 · 8 shots</td><td class="n">100%</td><td class="n">79%</td><td class="n">7%</td><td class="n">99%</td><td class="n">0%</td></tr>
+              <tr class="lead"><td>8 runs × 2 · 16 shots</td><td class="n">100%</td><td class="n">100%</td><td class="n">100%</td><td class="n">100%</td><td class="n">100%</td></tr>
             </tbody>
           </table></div>
-          <p style="margin:10px 0 0;font-size:13.5px">A, B, C and D are detected 100% of the time everywhere.
-            <strong>E is the entire lesson.</strong></p>
+          <p style="margin:8px 0 0;font-size:13px">Eight more shots take C from <strong>7% to 100%</strong>.</p>
         </div>
       </div>
       <div>
         <div class="panel mean" style="margin-bottom:12px">
-          <h4>What moved</h4>
-          <p style="margin-bottom:0">The <em>p</em>-value for E travelled <strong>nine orders of magnitude</strong>.
-            The estimate of the E effect wandered between 0.470 and 0.651 — unbiased, just imprecise. Students who read
-            that drift as "the effect got bigger" have misread the table.</p>
+          <h4>What did not move</h4>
+          <p style="margin-bottom:0">C's <em>p</em>-value reads <strong>0.0858, 0.0857, 0.0855, 0.0862</strong> as the
+            machine gets ten times noisier. In the replicated course the same column travelled nine orders of
+            magnitude. Here it is flat to three decimal places.</p>
         </div>
         <div class="panel" style="margin-bottom:12px">
           <h4>So what is a <em>p</em>-value?</h4>
-          <p style="margin-bottom:0">A statement about the <strong>evidence</strong>, not about the effect. It answers
-            "could sampling noise alone have produced a result this large?" — which depends entirely on how much noise
-            there is and how many observations you bought. Effect size is a property of the process. The
-            <em>p</em>-value is a property of the process <strong>and your experiment</strong>.</p>
+          <p style="margin-bottom:0">A statement about the <strong>evidence</strong>, not the effect. Effect size is a
+            property of the process; the <em>p</em>-value is a property of the process <strong>and your
+            experiment</strong> — including, here, its aliasing.</p>
         </div>
         <div class="panel vary">
-          <h4>Why C survives what buries E</h4>
-          <p style="margin-bottom:0">C's true effect is about 2.1 m against E's 0.37 m — nearly six times larger.
-            Signal-to-noise scales with effect size. That is the intuition behind every power calculation you will ever
-            run.</p>
+          <h4>Why it stopped listening</h4>
+          <p style="margin-bottom:0">At one shot per run the denominator is not noise — it is the interactions this
+            resolution III design cannot separate. That bias is <strong>fixed</strong>. It does not care how hard the
+            machine shakes, and it is what every <em>F</em> ratio divides by.</p>
         </div>
       </div>
     </div>
-    <div class="keyline"><b>Take away</b><p>Failing to detect a factor is not the same as demonstrating it is absent.
-      At 3× noise a 32-shot design is a coin toss for E — and E is real at every noise level.</p></div>
+    <div class="keyline a"><b>Take away</b><p>If a <em>p</em>-value does not move when the process gets ten times
+      noisier, ask what it is a <em>p</em>-value for. This one is measuring the design's own bias, and reporting it in
+      the notation of evidence.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Power is the concept students most reliably fail to absorb from a lecture, which is why this is
       built as something they run rather than something they are told.</p>
-    <p>The classroom version: have the room run the resolution V design at 3× noise with eight different seeds — 6101
-      through 6108 — and record whether E comes out significant each time. It comes out roughly 4 out of 8. That
-      fraction <em>is</em> the power, measured. Then ask how much confidence they should have had in the single answer
-      they wrote down from one experiment.</p>
-    <p>Then have them spend more shots two different ways: 16 runs × 6 replicates (96 shots) detects E 8 times out of
-      8; a full 2⁵ factorial × 2 replicates (64 shots) detects it 3 times out of 8. <strong>The bigger experiment did
-      worse.</strong> In the full factorial every three-, four- and five-factor interaction is unmodelled and lands in
-      the residual, inflating the error term — the same mechanism as the misspecification slide in Exercise 2. The
-      larger <em>n</em> is spent paying for an inflated denominator rather than buying precision.</p>
+    <p>The classroom version: have the room run the 8-run design at 1× noise with eight different seeds and record
+      whether C comes out significant. It comes out roughly <strong>one time in fourteen</strong>. Then have them add
+      one replicate — 16 shots instead of 8 — and watch it come out every single time. That contrast is the lab.</p>
+    <p>Now the perverse row, which rewards a class that is paying attention. C is detected 7% of the time at 1× noise
+      and <strong>29%</strong> of the time at 3×. More noise, more detections. Once the denominator is bias rather
+      than noise, adding noise does not reduce power — it just adds lottery tickets, and some of them win. Any student
+      who can explain that row understands what a <em>p</em>-value is.</p>
+    <p>Then give them the full factorial at one shot per run for contrast: 32 shots, 16 residual df, and E detected
+      18% of the time at 1× noise. More runs bought the degrees of freedom; they did not buy the power.</p>
     <p class="ask">The sentence to extract: <strong>runs buy resolution, replicates buy power.</strong> Runs separate
-      effects from each other; replicates separate effects from noise. Only the second fails when the machine gets
-      noisy, so only the second fixes it.</p>
+      effects from each other; replicates separate effects from noise. This entire revision is the second half of that
+      sentence, written out at length.</p>
   </aside>
 </article>
 
@@ -3347,55 +3533,58 @@ ln(s) = −1.6214
   <div class="holder"><section class="slide">
     <div class="eyebrow"><span class="tag a">Part 5</span><span>The trap</span></div>
     <h2 class="t">The design that looks best is the one to fear</h2>
-    <p class="sub">At 3× noise the 16-run resolution V design struggles to detect pin elevation. The 8-run resolution
-      III design finds it comfortably, on half the shots. This is very bad news.</p>
+    <p class="sub">At one shot per run the good design cannot produce a <em>p</em>-value at all, and the bad one
+      produces a confident estimate of the wrong quantity. Neither tells you which it is.</p>
     <div class="body cols c2">
       <div>
         <div class="tw"><table>
           <thead><tr><th>At 3× noise · seed 6004</th><th class="n">Shots</th><th class="n">E estimate</th><th class="n"><em>p</em> for E</th></tr></thead>
           <tbody>
-            <tr><td>2<sup>5−1</sup> res V</td><td class="n">32</td><td class="n">0.431</td><td class="n">9.1 × 10⁻²</td></tr>
-            <tr class="flag"><td>2<sup>5−2</sup> res III</td><td class="n">16</td><td class="n">1.586</td><td class="n">4.1 × 10⁻³</td></tr>
+            <tr><td>2<sup>5−1</sup> res V · saturated</td><td class="n">16</td><td class="n">0.498</td><td class="n">none exists</td></tr>
+            <tr class="flag"><td>2<sup>5−2</sup> res III</td><td class="n">8</td><td class="n">1.558</td><td class="n">0.226</td></tr>
             <tr class="dim"><td>Truth <span style="font-size:11px">(noiseless physics)</span></td><td class="n">—</td><td class="n">0.367</td><td class="n">—</td></tr>
           </tbody>
         </table></div>
         <div class="panel alarm" style="margin-top:14px">
-          <h4>What the E column is really estimating</h4>
-          <p style="margin-bottom:0">In the resolution III design, <strong>E is aliased with AC</strong> — and AC is
-            genuinely large. The column estimates E + AC and is inflated more than fourfold. The design looks powerful
-            because it is <strong>measuring the wrong quantity with confidence</strong>.</p>
+          <h4>Read the two rows carefully</h4>
+          <p style="margin-bottom:0">The <strong>good</strong> design got within 0.13 m of the truth and can say
+            nothing about it — 16 runs, 16 parameters, no residual. The <strong>bad</strong> design overstated E more
+            than fourfold, because E is aliased with AC and AC is genuinely large. Both fail. Only one of them makes
+            its failure visible.</p>
         </div>
       </div>
       <div>
         <div class="panel mean" style="margin-bottom:12px">
           <h4>Why this is worse than low power</h4>
-          <p style="margin-bottom:0">Low power gives you a wide confidence interval — a visible signal that says
-            "be careful". Bias gives you a narrow confidence interval around the wrong number, and removes the one cue
-            that might have made you cautious. <strong>More power for a biased estimate is worse than less power for an
+          <p style="margin-bottom:0">Low power gives a wide interval — a visible "be careful". Bias gives a narrow
+            interval around the wrong number. <strong>More power for a biased estimate is worse than less power for an
             unbiased one.</strong></p>
         </div>
         <div class="panel" style="margin-bottom:12px">
-          <h4>A machine with no noise at all</h4>
-          <p style="margin-bottom:0">Set noise to 0× and every within-run standard deviation is zero. Pure error is
-            zero, every <em>F</em> ratio is infinite, every <em>p</em>-value is 0. Not a bug — a demonstration that
-            significance testing is a comparison of signal against noise, and is meaningless without noise. If a real
-            process had no variation, one replicate would do and DOE would collapse into solving simultaneous
-            equations.</p>
+          <h4>A saturated design has three ways out</h4>
+          <div class="tw"><table>
+            <tbody>
+              <tr><td style="width:52%">Pool terms into the residual</td><td class="n">2–5 of 15 found</td></tr>
+              <tr><td>Lenth's pseudo standard error</td><td class="n">1 of 15</td></tr>
+              <tr class="lead"><td><strong>Centre points as pure error</strong></td><td class="n"><strong>13 of 15</strong></td></tr>
+            </tbody>
+          </table></div>
+          <p style="margin:10px 0 0">The first two build an error term out of <em>discarded signal</em>. Only the
+            third is made of noise — and it costs four runs already in the design.</p>
         </div>
         <div class="panel vary">
           <h4>Say this to the manager who wants to halve the experiment</h4>
-          <p style="margin-bottom:0">Cutting an experiment in half does not halve what you learn. It decides
-            <strong>which questions you are no longer allowed to ask</strong> — and the design will not warn you which
-            ones they were.</p>
+          <p style="margin-bottom:0">Halving an experiment does not halve what you learn. It decides <strong>which
+            questions you may no longer ask</strong> — and will not warn you which.</p>
         </div>
       </div>
     </div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">This slide exists to catch a specific error, and it works best if you let the class make it first.
-      Present the top table without the truth row and ask which design they would rather have used. A good number of
-      the room will pick the 8-run design — it found the effect, on half the shots. Then reveal that E's true effect
-      is 0.367 m and that the 8-run design overstated it more than fourfold.</p>
+    <p class="say">Present the top table without the truth row and ask which design they would rather have used.
+      Most rooms pick the 8-run design, because it is the only one that produced a number they recognise. Then reveal
+      that E's true effect is 0.367 m: the design that could say nothing was within 0.13 m of it, and the design that
+      spoke confidently was out by a factor of four.</p>
     <p>Connect it straight back to the alias reconciliation slide in Exercise 2. This is the identical mechanism,
       identical alias pair (E with AC), simply observed at higher noise. What changed is not the statistics but the
       framing: earlier it was a curiosity about a screening design, and here it is a design-selection decision someone
@@ -3420,10 +3609,10 @@ ln(s) = −1.6214
           <tbody>
             <tr class="flag"><td class="n">1</td><td><strong>Trusting a resolution III design.</strong> The most common conceptual failure. Insist on the alias table before the analysis.</td></tr>
             <tr><td class="n">2</td><td><strong>Reading the effect off the coefficient.</strong> In coded units the effect is twice the coefficient.</td></tr>
-            <tr><td class="n">3</td><td><strong>Analysing run means instead of individual shots.</strong> A saturated design has no residual df on means; the shots supply pure error.</td></tr>
+            <tr><td class="n">3</td><td><strong>Treating a residual as pure error.</strong> With one shot per run they are not the same thing, and nothing in the output distinguishes them.</td></tr>
             <tr><td class="n">4</td><td><strong>Including centre points in the interaction fit.</strong> They carry no interaction information — reserve them for the curvature test.</td></tr>
-            <tr><td class="n">5</td><td><strong>Declaring victory on R².</strong> R² of 0.99 coexists happily with badly significant lack of fit.</td></tr>
-            <tr><td class="n">6</td><td><strong>Chasing <em>p</em>-values.</strong> With 96 shots nearly everything is significant. Redirect to percent contribution.</td></tr>
+            <tr><td class="n">5</td><td><strong>Declaring victory on R².</strong> R² of 0.99 coexists happily with a model you have no way to test.</td></tr>
+            <tr><td class="n">6</td><td><strong>Chasing <em>p</em>-values.</strong> Here almost nothing is significant, and the estimates are fine anyway. Redirect to percent contribution.</td></tr>
           </tbody>
         </table></div>
       </div>
@@ -3461,10 +3650,9 @@ ln(s) = −1.6214
     <div class="body">
       <div class="cols c2">
         <div class="panel mean">
-          <h4>01 · Cheap experiments buy rankings, and nothing more</h4>
-          <p style="margin-bottom:0">Exercise 1 ordered five factors on 24 shots and got the ordering broadly right. It
-            also reported an arm-hole effect more than twice its true size, with no diagnostic capable of revealing it.
-            Both statements are true at once, and knowing that is the skill.</p>
+          <h4>01 · Estimates are cheap. Evidence is not.</h4>
+          <p style="margin-bottom:0">Eight shots ranked five factors correctly, within a few percent of the 24-shot
+            answer — and could not establish that three of them were real.</p>
         </div>
         <div class="panel mean">
           <h4>02 · Resolution has a price, and it is paid up front</h4>
@@ -3474,27 +3662,27 @@ ln(s) = −1.6214
         </div>
         <div class="panel mean">
           <h4>03 · A target does not determine a unique answer</h4>
-          <p style="margin-bottom:0">One equation, three unknowns, a ridge of correct solutions. Maximising gives a
-            point; targeting gives a set — and the set is an opportunity, not an inconvenience.</p>
+          <p style="margin-bottom:0">One equation, three unknowns, a ridge of 397 correct solutions — an opportunity
+            only if you have a second response to spend it on.</p>
         </div>
         <div class="panel vary">
-          <h4>04 · The leftover freedom is where robustness lives</h4>
-          <p style="margin-bottom:0">The mean is led by pull-back, the variation by band tension. Because those differ,
-            you can hold 10 m and cut the scatter by <strong>47%</strong> — no new hardware, no tighter tolerances,
-            just a better choice among settings that were always available.</p>
+          <h4>04 · What replication actually buys</h4>
+          <p style="margin-bottom:0">Not a better number. It buys <em>pure error</em>, and with it every significance
+            test, every adequacy check and the whole second response. σ runs 0.20–0.34 m along this ridge, and
+            <strong>nothing here could tell you which end you were on</strong>.</p>
         </div>
       </div>
       <div class="panel alarm" style="margin-top:20px">
         <h4>And the honest limit</h4>
-        <p style="margin-bottom:0">DOE found the best settings <strong>for this machine</strong>. Cutting variation
-          another 25% means changing the machine, not the settings — and recognising when you have reached that line is
-          part of the job.</p>
+        <p style="margin-bottom:0">None of this makes unreplicated designs wrong. 67 shots mapped a curved surface and
+          ranked five factors. It makes them <strong>a different instrument</strong> — one that measures means and
+          cannot measure how well. Knowing which you are holding is the job.</p>
       </div>
     </div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Return to the three answers you wrote on the board during the title slide, when you asked how they
-      would spend 96 shots and five knobs. Almost nobody proposes a sequence of three experiments with different
+      would spend 67 shots and five knobs. Almost nobody proposes a sequence of three experiments with different
       purposes. Almost everybody proposes one big one. That gap is what the day was for.</p>
     <p>The closing panel is the one to end on rather than the four numbered points. Students finish a DOE course
       believing the method is unboundedly powerful. It is not: it optimises the process you have. When the robust
@@ -3516,37 +3704,40 @@ ln(s) = −1.6214
         <div class="tw"><table>
           <thead><tr><th>Exercise</th><th>Design</th><th class="n">Runs</th><th class="n">Reps</th><th class="n">Shots</th><th class="n">Seed</th></tr></thead>
           <tbody>
-            <tr><td>Lab 0 baseline</td><td>Repeated runs</td><td class="n">2</td><td class="n">20</td><td class="n">40</td><td class="n">500 / 501</td></tr>
-            <tr class="lead"><td>1a · Screening</td><td>2<sup>5−2</sup> res III</td><td class="n">8</td><td class="n">3</td><td class="n">24</td><td class="n">1001</td></tr>
-            <tr class="lead"><td>1b · Screening</td><td>Plackett–Burman, 12 runs</td><td class="n">12</td><td class="n">3</td><td class="n">36</td><td class="n">1201</td></tr>
-            <tr><td>· De-alias (alt)</td><td>2<sup>5−1</sup> res V + 4 CP</td><td class="n">20</td><td class="n">3</td><td class="n">60</td><td class="n">2002</td></tr>
-            <tr class="lead"><td>2 · Full factorial</td><td>2<sup>5</sup></td><td class="n">32</td><td class="n">3</td><td class="n">96</td><td class="n">4004</td></tr>
-            <tr class="lead"><td>3 · Response surface</td><td>Box-Behnken, 3 factors</td><td class="n">15</td><td class="n">15</td><td class="n">225</td><td class="n">3003</td></tr>
-            <tr><td>· Confirmation</td><td>2 settings</td><td class="n">2</td><td class="n">30</td><td class="n">60</td><td class="n">9001 / 9002</td></tr>
-            <tr><td>· Power</td><td>res V, varied noise</td><td class="n">16</td><td class="n">2–6</td><td class="n">~900</td><td class="n">6001 / 6004, 6101–6108</td></tr>
+            <tr><td>Lab 0 baseline</td><td>Two settings, once each</td><td class="n">2</td><td class="n">1</td><td class="n">2</td><td class="n">500 / 501</td></tr>
+            <tr class="lead"><td>1a · Screening</td><td>2<sup>5−2</sup> res III</td><td class="n">8</td><td class="n">1</td><td class="n">8</td><td class="n">1001</td></tr>
+            <tr class="lead"><td>1b · Screening</td><td>Plackett–Burman, 12 runs</td><td class="n">12</td><td class="n">1</td><td class="n">12</td><td class="n">1201</td></tr>
+            <tr><td>· De-alias (saturated)</td><td>2<sup>5−1</sup> res V + 4 CP</td><td class="n">20</td><td class="n">1</td><td class="n">20</td><td class="n">2002</td></tr>
+            <tr class="lead"><td>2a · Full factorial</td><td>2<sup>5</sup></td><td class="n">32</td><td class="n">1</td><td class="n">32</td><td class="n">4004</td></tr>
+            <tr class="lead"><td>2b · + centre points</td><td>2<sup>5</sup> + 4 CP</td><td class="n">36</td><td class="n">1</td><td class="n">36</td><td class="n">4004</td></tr>
+            <tr class="lead"><td>3 · Response surface</td><td>Box-Behnken, 3 factors</td><td class="n">15</td><td class="n">1</td><td class="n">15</td><td class="n">3003</td></tr>
+            <tr><td>· Confirmation</td><td>2 ridge ends</td><td class="n">2</td><td class="n">600</td><td class="n">1200</td><td class="n">99991</td></tr>
+            <tr><td>· Power</td><td>res III, varied noise</td><td class="n">8</td><td class="n">1–2</td><td class="n">~900</td><td class="n">6001 / 6004</td></tr>
           </tbody>
         </table></div>
         <p style="font-size:13px;color:var(--muted);margin:12px 0 0">Noise at <strong>1×</strong> throughout except the
-          power exercise. Every seed reproduces exactly, in the browser and the offline toolkit alike.</p>
+          power exercise. Every seed reproduces exactly, in the browser and the offline toolkit alike — but only at the
+          replicate count shown, since changing it changes every draw.</p>
       </div>
       <div>
         <div class="runcard" style="margin-bottom:12px">
           <header>Commands</header>
           <dl>
             <dt>Standalone</dt><dd>npm run build:standalone</dd>
-            <dt>Full study</dt><dd>node doe/run-study.mjs</dd>
+            <dt>This revision</dt><dd>run-study.mjs --reps=1</dd>
+            <dt>Replicated</dt><dd>run-study.mjs</dd>
             <dt>Other target</dt><dd>--target=14</dd>
             <dt>Noisy machine</dt><dd>--noise=3</dd>
-            <dt>Regenerate data</dt><dd>--write</dd>
+            <dt>Regenerate</dt><dd>--write --out=course/data-n1</dd>
             <dt>Power tables</dt><dd>npm run power</dd>
             <dt>Tests</dt><dd>npm test</dd>
           </dl>
         </div>
         <div class="panel">
           <h4>Course files</h4>
-          <p style="margin-bottom:0"><code>course/student-workbook.md</code> — the labs in full<br>
-            <code>course/instructor-guide.md</code> — answer key and rubric<br>
-            <code>course/data/*.csv</code> — pre-generated data<br>
+          <p style="margin-bottom:0"><code>course/instructor-guide-n1.md</code> — answer key<br>
+            <code>course/data-n1/*.csv</code> — one row per run<br>
+            <code>…-plus-4cp.csv</code> — Exercise 2b<br>
             <code>standalone/digital-catapult.html</code> — the simulator</p>
         </div>
       </div>

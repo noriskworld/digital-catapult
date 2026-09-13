@@ -177,6 +177,30 @@ function unit(k, i) {
 }
 
 /** Evaluates one term at a coded point. */
+/**
+ * Builds a term list from explicit labels like ['A', 'B', 'AB'].
+ *
+ * This is what a *reduced* model needs: the analyst names the terms to keep,
+ * and everything left out is pooled into the residual. On an unreplicated
+ * design that pooling is the only way to obtain degrees of freedom at all.
+ *
+ * @param {number} k
+ * @param {string[]} labels - products of factor letters; 'A', 'BD', 'ABC'
+ * @returns {Array<{label: string, powers: number[]}>}
+ */
+function termsFromLabels(k, labels) {
+  const letters = 'ABCDEFGH'.slice(0, k);
+  return labels.map(label => {
+    const powers = new Array(k).fill(0);
+    for (const ch of label) {
+      const i = letters.indexOf(ch);
+      if (i < 0) throw new Error(`Term "${label}" names a factor "${ch}" outside A-${letters.at(-1)}`);
+      powers[i] += 1;
+    }
+    return { label, powers };
+  });
+}
+
 function termValue(term, point) {
   let value = 1;
   for (let i = 0; i < point.length; i++) value *= point[i] ** term.powers[i];
@@ -192,14 +216,20 @@ function termValue(term, point) {
  * an orthogonal factorial every convention agrees; for a Box-Behnken design this
  * is the one that answers "what does this term add, given the rest?".
  *
+ * Passing an array of term labels instead of an order fits a **reduced model**:
+ * only those terms are estimated and every other contrast is pooled into the
+ * residual. That is the standard way to buy degrees of freedom out of an
+ * unreplicated design - at the price of an error term made of whatever you
+ * decided to leave out.
+ *
  * @param {number[][]} design - coded rows, one per run
  * @param {number[]} response
- * @param {'main'|'interaction'|'quadratic'} order
+ * @param {'main'|'interaction'|'quadratic'|string[]} order
  * @returns {FitResult}
  */
 export function fit(design, response, order = 'interaction') {
   const k = design[0].length;
-  const terms = modelTerms(k, order);
+  const terms = Array.isArray(order) ? termsFromLabels(k, order) : modelTerms(k, order);
   const n = design.length;
   const p = terms.length + 1;
 
@@ -357,8 +387,142 @@ export function curvatureTest(design, response) {
     factorialMean,
     centreMean,
     difference: factorialMean - centreMean,
+    // Reported because the denominator degrees of freedom are the thing most
+    // often got wrong here: pure error comes from centre *shots*, not centre
+    // runs, so four runs fired three times each carries 11 df, not 3.
+    factorialN: nF,
+    centreN: nC,
+    pureErrorDf,
     fStatistic,
     pValue: fPValue(fStatistic, 1, pureErrorDf)
+  };
+}
+
+/* ------------------------------------------- unreplicated (saturated) designs */
+
+/**
+ * The t quantile, obtained from the F distribution already implemented above:
+ * t(prob, df)^2 is the (2*prob - 1) quantile of F(1, df). Bisection is ample
+ * here - it is called a handful of times per study, never in a loop.
+ *
+ * @param {number} prob - upper probability, > 0.5
+ * @param {number} df - may be fractional, which Lenth's method requires
+ * @returns {number}
+ */
+function tQuantile(prob, df) {
+  const upperTail = 2 * (1 - prob);
+  let lo = 0;
+  let hi = 1e6;
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    if (fPValue(mid, 1, df) > upperTail) lo = mid; else hi = mid;
+  }
+  return Math.sqrt((lo + hi) / 2);
+}
+
+/**
+ * Lenth's pseudo standard error.
+ *
+ * An unreplicated design has no degrees of freedom left for error, so there is
+ * no denominator for an F test. Lenth's method builds one out of the effects
+ * themselves: under effect sparsity most of them estimate nothing but noise, so
+ * the median of the small ones is a scale estimate for the whole set. The
+ * trimming step removes the genuinely active effects before taking that median,
+ * which is what stops a few large effects from inflating their own yardstick.
+ *
+ * Returns the margin of error (ME, individual) and the simultaneous margin
+ * (SME, controlling the error rate across all m effects at once). An effect
+ * beyond SME is active on any reading; one between ME and SME is a candidate.
+ *
+ * @param {number[]} effects
+ * @param {number} [alpha=0.05]
+ * @returns {{pse: number, df: number, me: number, sme: number}|null}
+ */
+export function lenthPSE(effects, alpha = 0.05) {
+  const m = effects.length;
+  if (m < 3) return null;
+
+  const median = xs => {
+    const sorted = [...xs].sort((a, b) => a - b);
+    const half = sorted.length >> 1;
+    return sorted.length % 2 ? sorted[half] : (sorted[half - 1] + sorted[half]) / 2;
+  };
+
+  const magnitudes = effects.map(Math.abs);
+  const s0 = 1.5 * median(magnitudes);
+  const trimmed = magnitudes.filter(v => v < 2.5 * s0);
+  const pse = 1.5 * median(trimmed.length ? trimmed : magnitudes);
+
+  const df = m / 3;
+  const gamma = (1 + (1 - alpha) ** (1 / m)) / 2;
+  return {
+    pse,
+    df,
+    me: tQuantile(1 - alpha / 2, df) * pse,
+    sme: tQuantile(gamma, df) * pse
+  };
+}
+
+/**
+ * Fits a model with no degrees of freedom to spare - the unreplicated case
+ * `fit` refuses, because every statistic it would report needs a residual.
+ *
+ * The coefficients are the same least squares estimates; what changes is how
+ * they are judged. There are no F ratios and no p-values here, only effect
+ * sizes measured against Lenth's pseudo standard error.
+ *
+ * @param {number[][]} design
+ * @param {number[]} response
+ * @param {'main'|'interaction'|'quadratic'} order
+ * @param {number} [alpha=0.05]
+ * @returns {{intercept: number, saturated: boolean, lenth: object|null,
+ *            terms: Array<object>}}
+ */
+export function fitSaturated(design, response, order = 'interaction', alpha = 0.05) {
+  const k = design[0].length;
+  const terms = Array.isArray(order) ? termsFromLabels(k, order) : modelTerms(k, order);
+  const n = design.length;
+  const p = terms.length + 1;
+
+  if (n < p) {
+    throw new Error(`Not enough runs (${n}) to estimate ${p} parameters at all.`);
+  }
+
+  const X = design.map(row => [1, ...terms.map(t => termValue(t, row))]);
+  const XtX = Array.from({ length: p }, (_, i) =>
+    Array.from({ length: p }, (_, j) => X.reduce((s, row) => s + row[i] * row[j], 0))
+  );
+  const Xty = Array.from({ length: p }, (_, i) =>
+    X.reduce((s, row, r) => s + row[i] * response[r], 0)
+  );
+  const { solution: coefficients, inverse } = solveWithInverse(XtX, Xty);
+
+  const mean = response.reduce((a, b) => a + b, 0) / n;
+  const totalSS = response.reduce((s, y) => s + (y - mean) ** 2, 0);
+
+  const entries = terms.map((term, index) => {
+    const j = index + 1;
+    const coefficient = coefficients[j];
+    const sumSquares = (coefficient * coefficient) / inverse[j][j];
+    return {
+      label: term.label,
+      coefficient,
+      effect: 2 * coefficient,
+      sumSquares,
+      percentContribution: totalSS > 0 ? (100 * sumSquares) / totalSS : 0
+    };
+  });
+
+  const lenth = lenthPSE(entries.map(e => e.effect), alpha);
+  return {
+    intercept: coefficients[0],
+    saturated: n === p,
+    lenth,
+    terms: entries.map(e => ({
+      ...e,
+      active: lenth ? Math.abs(e.effect) > lenth.me : false,
+      clear: lenth ? Math.abs(e.effect) > lenth.sme : false
+    }))
   };
 }
 

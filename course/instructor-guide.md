@@ -228,8 +228,14 @@ students who describe the interaction *physically* rather than just naming it.
 | Mean of 16 factorial runs | 7.445 m |
 | Mean of 4 centre runs | 8.169 m |
 | Difference | −0.724 m |
-| *F* (1, 3) | 133.83 |
+| *F* (1, 11) | 133.83 |
 | *p* | 1.7 × 10⁻⁷ |
+
+The 11 denominator degrees of freedom are pure error from the centre points:
+4 centre runs × 3 shots = 12 centre shots, so 12 − 1 = 11. Students who write
+4 − 1 = 3 get a *p* of 1.4 × 10⁻³ — the same conclusion, but it is worth
+correcting, because the same slip hides real lack of fit in less clear-cut
+cases.
 
 Highly significant. The centre sits *above* the corner average, so the surface
 is domed — a two-level model would systematically under-predict the middle.
