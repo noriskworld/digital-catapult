@@ -688,8 +688,9 @@ body.hidenotes .notes { display: none; }
     <p class="ask">Ask them to predict now, before any data: which two of the five factors will turn out not to matter?
       Write the guesses down. Pull-back angle is the obvious guess for "matters most" and is correct; the group usually
       splits on pin elevation versus arm hole, and pin elevation is the one that dies.</p>
-    <p>The 690-shot arithmetic in the right-hand panel is worth doing on the board slowly. It is the most concrete
-      justification for sequential experimentation that the course contains.</p>
+    <p>The 46-shot arithmetic in the right-hand panel is worth doing on the board slowly, and this revision gives it
+      an extra edge: 46 runs fired once each is affordable, and it would still have told you nothing about variation.
+      Cheapness was never the obstacle.</p>
   </aside>
 </article>
 
@@ -856,7 +857,7 @@ body.hidenotes .notes { display: none; }
         </div>
         <div class="panel vary">
           <h4>No simulator at all?</h4>
-          <p style="margin-bottom:0">Every exercise has pre-generated data in <code>course/data/</code>, produced at the
+          <p style="margin-bottom:0">Every exercise has pre-generated data in <code>course/data-n1/</code>, produced at the
             seeds these slides quote. Students can analyse without firing a shot — though they lose the part where they
             watch the variation happen.</p>
         </div>
@@ -1138,7 +1139,7 @@ body.hidenotes .notes { display: none; }
           same noise level ⇒ <strong>the same data, shot for shot</strong> — in the browser and in the offline toolkit
           alike.</p>
         <p>That is what lets these slides quote exact numbers and lets students check themselves against
-          <code>course/data/</code>.</p>
+          <code>course/data-n1/</code>.</p>
         <p style="margin-bottom:0"><strong>The catch:</strong> editing the configuration table by hand instead of using
           <em>Load DOE design</em> changes the run order, and therefore the random draws. Conclusions still match;
           third decimals do not.</p>
@@ -1486,21 +1487,23 @@ body.hidenotes .notes { display: none; }
         </div>
         <div class="panel vary">
           <h4>Q1.6 to think about while it runs</h4>
-          <p style="margin-bottom:0">The design is saturated: no degrees of freedom are left for interactions. So why
-            does replication give you an error estimate anyway?</p>
+          <p style="margin-bottom:0">Two residual degrees of freedom, and the design is saturated for interactions.
+            So what exactly is the denominator of your <em>F</em> ratios made of?</p>
         </div>
       </div>
     </div>
     <div class="keyline"><b>Time</b><p>Five minutes to run and export. Forty to analyse and argue.</p></div>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
-    <p class="say">"Analysing run means instead of individual shots" is error number two on the common-failures list and
-      it will happen in every cohort. Pre-empt it here and watch for it during the lab: the symptom is a student
-      reporting that their software refused to fit, or produced no <em>p</em>-values at all.</p>
-    <p>Answer to Q1.6, for the debrief: replication estimates <em>pure error</em> directly — repeat shots at identical
-      settings can differ only by noise, since every factor is held fixed. That estimate is independent of which model
-      you fit, which is exactly why it still works when the design is saturated and the model has no spare degrees of
-      freedom of its own.</p>
+    <p class="say">In the replicated course this is where you warn against analysing run means instead of individual
+      shots. That error is impossible here — one shot per run means they are the same thing — so use the time for the
+      question it was protecting against instead.</p>
+    <p>Answer to Q1.6, for the debrief, and it is the hinge of the whole revision: the denominator is <em>not</em>
+      noise. Eight observations minus six parameters leaves two degrees of freedom, and what sits in them is the
+      two-factor interactions this resolution III design cannot separate. In the replicated course the same design
+      supplies 18 df of genuine pure error from repeat shots at identical settings — an estimate independent of which
+      model you fit. Here there is no repeat shot anywhere, so every <em>F</em> ratio divides signal by leftover
+      signal.</p>
     <p>While they run: circulate and check the Noise control reads 1×. It is the single most likely cause of a mismatch
       with the answer key.</p>
   </aside>
@@ -1918,7 +1921,7 @@ then add one run with every factor low.</span>
     <p>Resist the question "so which one is right?" — it is the wrong question and asking it back is more useful.
       Neither is right; both are estimating sums of effects, differently weighted. The disagreement is not a defect in
       one of them, it is a measurement of how much aliasing is distorting both.</p>
-    <p>Point at the D row specifically. A 3.87 m disagreement on a factor whose true effect is 2.35 m means the
+    <p>Point at the D row specifically. A 3.76 m disagreement on a factor whose unaliased effect is 2.45 m means the
       <em>disagreement is larger than the thing being measured</em>. No amount of replication in either design would
       have revealed that; only running both did.</p>
     <p>Practical note for the workplace: running two different screening designs is unusual, and normally you cannot
@@ -1926,7 +1929,7 @@ then add one run with every factor low.</span>
       would wreck your chosen design — and if you cannot rule them out, that is an argument for spending on resolution
       up front rather than discovering the problem later.</p>
     <p class="ask">Ask them to commit: "Which factor will Exercise 2 show the biggest screening error on?" Take a vote
-      between D and E. The answer is D, off by 2.84 m in the regular design.</p>
+      between D and E. The answer is D, off by 2.76 m in the regular design.</p>
   </aside>
 </article>
 
@@ -1943,7 +1946,8 @@ then add one run with every factor low.</span>
           <li><strong>A ranking.</strong> The ordering of the big factors is broadly right, and A really is dominant.</li>
           <li><strong>A drop decision.</strong> Something contributing 2.5% is a defensible candidate to fix and stop
             studying.</li>
-          <li><strong>A pure-error estimate</strong>, from replication, independent of the model.</li>
+          <li><strong>Two residual degrees of freedom</strong> — and they are left-over contrast, not pure error.
+            Nothing here was fired twice.</li>
           <li><strong>Enormous efficiency.</strong> Five factors triaged in 8 shots — a quarter of what the next
             exercise costs.</li>
         </ul>
@@ -2094,8 +2098,8 @@ then add one run with every factor low.</span>
         </div>
         <div class="panel" style="margin-top:12px">
           <h4>Provided data</h4>
-          <p style="margin-bottom:0"><code>course/data/full-factorial-2^5.csv</code> — identical to what this seed
-            produces.</p>
+          <p style="margin-bottom:0"><code>course/data-n1/full-factorial-2^5.csv</code> for 2a, and
+            <code>…-plus-4cp.csv</code> for 2b — identical to what this seed produces.</p>
         </div>
       </div>
       <div>
@@ -2194,7 +2198,7 @@ then add one run with every factor low.</span>
     <p><strong>This is the exercise that survives.</strong> Say so plainly, then say why: 32 runs against 16
       parameters leaves 16 residual degrees of freedom, and those were bought with <em>runs</em>, not replicates. It
       is the strongest case in the course for spending shots on new settings. The bill arrives two slides later.</p>
-    <p>Do not resolve the E question yet. Students will notice E has collapsed to 0.13%; hold that for the next slide,
+    <p>Do not resolve the E question yet. Students will notice E has collapsed to 0.27%; hold that for the next slide,
       where it becomes evidence rather than an observation.</p>
     <p class="ask">Q2.5, worth raising here: even with 32 shots, terms contributing 0.3% are still statistically
       significant. Which would you keep in an engineering model? Keep A, B, C, D and AB, arguably AC and AD; drop
@@ -2319,7 +2323,7 @@ then add one run with every factor low.</span>
             <span><i style="background:var(--alarm)"></i>2<sup>5−2</sup> res III · 8 shots</span>
             <span><i style="background:var(--alarm);opacity:.4;outline:1px solid var(--alarm)"></i>Plackett–Burman · 12 shots</span>
           </div>
-          <svg viewBox="0 0 470 240" role="img" aria-label="Estimation error by design. The regular resolution three design overestimates every effect, worst on D at 2.84 metres. The Plackett-Burman underestimates every effect, worst on D at 1.03 metres.">
+          <svg viewBox="0 0 470 240" role="img" aria-label="Estimation error by design. The regular resolution three design overestimates every effect, worst on D at 2.76 metres. The Plackett-Burman underestimates every effect, worst on D at 1.00 metres.">
             <line x1="250" y1="16" x2="250" y2="214" class="ax"/>
             <text class="lbl" x="120" y="230">−2</text><text class="lbl" x="182" y="230">−1</text>
             <text class="lbl" x="244" y="230">0</text><text class="lbl" x="302" y="230">+1</text><text class="lbl" x="362" y="230">+2</text>
@@ -2382,14 +2386,14 @@ then add one run with every factor low.</span>
   </section></div>
   <aside class="notes"><h5>Lecture notes</h5>
     <p class="say">Open by reminding them of the vote you took at the end of Exercise 1b. The class predicted which
-      factor the screens would be most wrong about; here is the answer. D, off by 2.84 m in the regular design — larger
-      than D's true effect of 2.35 m.</p>
+      factor the screens would be most wrong about; here is the answer. D, off by 2.76 m in the regular design — larger
+      than D's unaliased effect of 2.45 m.</p>
     <p>The systematic sign pattern is the most interesting thing on the slide and is worth drawing out. Every regular
       error is positive; every Plackett–Burman error is negative. Neither is chance. Most two-factor interactions on
       this machine are positive, so the regular design — which adds one whole interaction to each main effect — biases
       everything upward. The Plackett–Burman adds six at a third each with mixed signs, and on this particular process
       those sums happen to come out negative.</p>
-    <p>Resist declaring Plackett–Burman the winner, even though Σ|error| favours it 4.02 to 6.55. Three qualifications:
+    <p>Resist declaring Plackett–Burman the winner, even though Σ|error| favours it 4.29 to 6.18. Three qualifications:
       it used 12 shots against 8; it was worse on C; and it inverted the sign of E, which in a screening context is
       the one error that could get a real factor discarded for the wrong reason. The honest summary is that
       <strong>the two designs have different failure modes, and neither is safe alone.</strong></p>
@@ -2586,11 +2590,10 @@ then add one run with every factor low.</span>
             divides by it anyway.</p>
         </div>
         <div class="panel alarm">
-          <h4>Two designs, two centre sets, one answer</h4>
-          <p style="margin-bottom:0">The de-aliasing design puts the centre <strong>0.85 m above</strong> the corners
-            (<em>F</em>(1, 3) = 69.3). Exercise 2b, independently, puts it <strong>0.71 m above</strong>
-            (<em>F</em>(1, 3) = 18.2). Different runs, different draws, same verdict. Centre points are the cheapest
-            replication in DOE and they carry two diagnostics at once.</p>
+          <h4>What it would take to separate them</h4>
+          <p style="margin-bottom:0">One setting, fired twice. That is the entire requirement — and 32 runs at 32
+            different settings do not contain it. Before accepting the limitation, work out the cheapest design change
+            that would lift it.</p>
         </div>
       </div>
     </div>
@@ -2713,9 +2716,9 @@ then add one run with every factor low.</span>
         </div>
         <div class="panel vary">
           <h4>Three degrees of freedom is still three</h4>
-          <p style="margin-bottom:0">The de-aliasing design's centre points gave <em>s</em> = 0.182 m; these gave
-            0.314 m. Same setting, two estimates of one number, 1.7× apart. A 3-df pure error is a blunt
-            instrument.</p>
+          <p style="margin-bottom:0">True σ here is 0.187 m; these four shots put it at <strong>0.314 m</strong>. A
+            second set of four, in the workbook's half-fraction, put it at 0.182 m. <strong>A 3-df pure error is a
+            blunt instrument.</strong></p>
         </div>
       </div>
     </div>
@@ -2736,11 +2739,11 @@ then add one run with every factor low.</span>
     <p>Curvature is the one that changes what you do on Monday. 0.71 m above the corner average, <em>p</em> = 0.024.
       Exercise 2a would have finished with a plane and no reason to distrust it. Ask what would have happened to a team
       that took that plane and solved it for 10 m.</p>
-    <p>Be honest about the 3 df, because a sharp student will raise it. The de-aliasing design's four centre runs gave
-      <em>s</em> = 0.182 m at the same settings; these four gave 0.314 m. The true value is 0.187 m. Two samples of
-      four, one nearly exact and one 68% high — that is what a standard deviation on three degrees of freedom looks
-      like, and it is the argument for six or eight centre runs rather than four when they are carrying this much
-      weight.</p>
+    <p>Be honest about the 3 df, because a sharp student will raise it. These four centre shots put <em>s</em> at
+      0.314 m; the true value is 0.187 m, so this sample is 68% high. (The workbook's half-fraction, with its own four
+      centre runs at the same settings, happens to land on 0.182 m — nearly exact. Same quantity, same design size,
+      two very different answers.) That is what a standard deviation on three degrees of freedom looks like, and it is
+      the argument for six or eight centre runs rather than four when they are carrying this much weight.</p>
     <p class="ask">Ask: "You have 36 shots and this design. Would you rather have spent the last four on four more
       corners, or at the centre?" Four more corners buy a fractionally better estimate of effects you have already
       measured well. The centre buys two diagnostics you otherwise cannot have at all.</p>
@@ -2845,25 +2848,25 @@ then add one run with every factor low.</span>
             <circle cx="155" cy="74" r="5.5" fill="var(--vary)"/>
             <circle cx="155" cy="108" r="4" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>
             <line x1="155" y1="78" x2="155" y2="104" stroke="var(--alarm)" stroke-width="1.6"/>
-            <text class="val" x="163" y="96" fill="var(--alarm)">0.85 m</text>
+            <text class="val" x="163" y="96" fill="var(--alarm)">0.71 m</text>
 
             <text class="lbl" x="52" y="160">corner</text>
             <text class="lbl" x="228" y="66">corner</text>
             <text class="lbl" x="120" y="62" fill="var(--vary)">centre runs</text>
           </svg>
-          <figcaption>Both corners fit perfectly. R² says nothing is wrong. The middle is three-quarters of a metre
+          <figcaption>Both corners fit perfectly. R² says nothing is wrong. The middle is seven-tenths of a metre
             out.</figcaption>
         </figure>
       </div>
       <div>
         <div class="panel alarm" style="margin-bottom:12px">
-          <h4>The curvature test, from centre points</h4>
+          <h4>The curvature test, from Exercise 2b</h4>
           <div class="tw"><table>
             <tbody>
-              <tr><td style="width:56%">Mean of 16 factorial runs</td><td class="n">7.433 m</td></tr>
-              <tr><td>Mean of 4 centre runs</td><td class="n">8.282 m</td></tr>
-              <tr class="flag"><td>Difference</td><td class="n">−0.849 m</td></tr>
-              <tr class="flag"><td><em>F</em> (1, 3) · <em>p</em></td><td class="n">69.3 · 3.6 × 10⁻³</td></tr>
+              <tr><td style="width:56%">Mean of the 32 corner runs</td><td class="n">7.363 m</td></tr>
+              <tr><td>Mean of the 4 centre runs</td><td class="n">8.074 m</td></tr>
+              <tr class="flag"><td>Difference</td><td class="n">−0.711 m</td></tr>
+              <tr class="flag"><td><em>F</em> (1, 3) · <em>p</em></td><td class="n">18.2 · 0.024</td></tr>
             </tbody>
           </table></div>
           <p style="margin:10px 0 0">The centre sits <strong>above</strong> the corner average, so the surface is
@@ -2883,19 +2886,17 @@ then add one run with every factor low.</span>
     <p class="say">The picture is the argument. A straight line through two points on a curve fits both points
       perfectly — residuals of zero at every design point — and is wrong everywhere between them. No diagnostic
       computed from the corners can detect this, which is precisely why centre points exist.</p>
-    <p>The centre-point test is beautifully cheap, and in this revision it is the <em>only</em> inferential test in
-      Exercise 2 that still runs. Say why explicitly: the four centre runs are four replicates of each other, so this
-      test carries its own pure error. Four centre runs fired once each gives 3 degrees of freedom — which is exactly
-      what 4 − 1 describes. In the replicated course those same four runs are fired three times each: 12 observations,
-      11 df, and the same test at <em>F</em>(1, 11) = 133.8.</p>
-    <p>That comparison is worth putting on the board, because it is the cleanest illustration in the deck of what a
-      replicate actually buys: identical design, identical machine, identical conclusion — and a denominator with
-      nearly four times the degrees of freedom behind it.</p>
-    <p>Then push it further, because this is the constructive result of the whole revision. Those four centre shots
-      give <em>s</em> = 0.182 m on 3 df, and 0.182 m is a <strong>real noise estimate</strong> — the true shot-to-shot
-      SD is about 0.16. Use it as the denominator for the de-aliasing design's effects and 13 of 15 clear significance.
-      Compare with what the alternatives manage: pooling interactions into the residual gives an error SD of 1.3 to
-      2.4 m and finds 2 to 5 of them; Lenth's PSE gives 1.2 m and finds one.</p>
+    <p>These are Exercise 2b's own numbers, so the class has them in front of them — 32 corners and 4 centre runs,
+      seed 4004. Say why the test works at all when nothing else in the exercise does: the four centre runs are four
+      replicates <em>of each other</em>, so this test carries its own pure error. Four centre runs fired once each
+      gives 3 degrees of freedom, which is exactly what 4 − 1 describes.</p>
+    <p>The comparison worth putting on the board is with the replicated course, where the same kind of test runs on
+      12 centre observations and 11 df. Identical machine, identical conclusion, a denominator with nearly four times
+      the degrees of freedom behind it. That is what a replicate buys, stated precisely.</p>
+    <p class="only"><b>Instructor only</b> — the workbook's Lab 2 half-fraction (2<sup>5−1</sup> res V + 4 CP, seed
+      2002) is an independent check on this and reaches the same verdict from different runs: centre 0.85 m above the
+      corners, <em>F</em>(1, 3) = 69.3. Its centre points give <em>s</em> = 0.182 m against 2b's 0.314 m — two
+      3-df estimates of a true 0.187 m. Mention it only if a student asks whether one centre set could be a fluke.</p>
     <p class="say">The sentence that follows: <strong>degrees of freedom can be manufactured; an honest error term
       cannot.</strong> Pooling and Lenth both build a denominator out of signal you decided to ignore. Only replication
       builds one out of noise — and four replicated centre runs did more for this design than any reduced model.</p>
@@ -3247,13 +3248,14 @@ Distance = <span class="c">9.4107</span>
         <div class="tw"><table>
           <thead><tr><th class="n">C</th><th class="n">A</th><th class="n">B</th><th>Machine setting</th></tr></thead>
           <tbody>
-            <tr><td class="n">−0.8</td><td class="n">0.360</td><td class="n">0.967</td><td class="k">177° · 112° · 1.80</td></tr>
-            <tr class="lead"><td class="n">0.0</td><td class="n">−0.237</td><td class="n">0.646</td><td class="k">165° · 109° · 3.00</td></tr>
-            <tr><td class="n">+0.8</td><td class="n">−0.028</td><td class="n">−0.412</td><td class="k">169° · 100° · 4.20</td></tr>
+            <tr><td class="n">−0.8</td><td class="n">0.607</td><td class="n">0.486</td><td class="k">182° · 108° · 1.80</td></tr>
+            <tr class="lead"><td class="n">0.0</td><td class="n">0.137</td><td class="n">0.110</td><td class="k">173° · 104° · 3.00</td></tr>
+            <tr><td class="n">+0.8</td><td class="n">−0.200</td><td class="n">−0.194</td><td class="k">166° · 102° · 4.20</td></tr>
           </tbody>
         </table></div>
-        <p style="font-size:13px;color:var(--muted);margin:10px 0 14px">All three predict exactly 10.00 m. Pull-back
-          spans 165–177°, stop angle 100–112°, bungee 1.8–4.2. They are genuinely different machines.</p>
+        <p style="font-size:13px;color:var(--muted);margin:10px 0 14px">All three predict 10.00 m to the nearest
+          centimetre. Pull-back spans 166–182°, stop angle 102–108°, bungee 1.8–4.2. They are genuinely different
+          machines.</p>
         <div class="panel vary">
           <h4>Q3.7 · so which one do you pick?</h4>
           <p style="margin-bottom:0">The target constrains the mean and leaves a whole ridge free. <strong>Spend that
@@ -3475,7 +3477,7 @@ Distance = <span class="c">9.4107</span>
         <p style="font-size:13px;color:var(--muted);margin:8px 0 0">2<sup>5−2</sup> res III, 8 runs × 1, seed 6001.
           The res V design is saturated at one shot per run, so it has no <em>p</em>-value to watch at all.</p>
         <div class="panel alarm" style="margin-top:14px">
-          <h4>Empirical power for E, over 500 repeated experiments</h4>
+          <h4>Empirical power by factor · 1× noise · 500 repeated experiments</h4>
           <div class="tw"><table>
             <thead><tr><th>Design, at 1× noise</th><th class="n">A</th><th class="n">B</th><th class="n">C</th><th class="n">D</th><th class="n">E</th></tr></thead>
             <tbody>

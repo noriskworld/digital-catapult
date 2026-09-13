@@ -137,6 +137,12 @@ ME = 5.015, SME = 10.743 — only A clears either margin.
 
 ## Lab 2 — de-aliasing
 
+> **Not in the slide deck.** The deck goes straight from screening to the full
+> factorial, so this lab is workbook-and-guide only. Teach it if you have the
+> time — the saturated-design material below is the sharpest content in the
+> revision — or skip it without breaking the deck's narrative, which no longer
+> depends on it anywhere.
+
 ### 2⁵⁻¹ resolution V + 4 centre points, 20 runs × 1 = **20 shots** (seed 2002)
 
 **The design is saturated.** Sixteen factorial runs, and a model with the five
@@ -252,7 +258,7 @@ Lenth's PSE = 1.2158 on 5.00 df, **ME = 3.125**, **SME = 6.345**.
 
 Only A clears the margin. AB, B, D and C — every one of them confirmed real by
 the 96-shot factorial — fall below it. Against a true shot-to-shot SD near
-0.16 m, the PSE is about eight times too large.
+0.187 m, the PSE is about **six and a half times** too large.
 
 #### Which route to teach
 
@@ -273,10 +279,12 @@ was.**
 subtlest point in the revision. Lenth's method assumes effect sparsity: that
 most contrasts estimate noise, so their median is a scale for noise. On this
 machine seven of the fifteen contrasts are genuinely active. The median is
-therefore taken over a set that is nearly half signal, the PSE comes out around
-1.2 when the true shot-to-shot SD is about 0.16, and the margin it produces is
-roughly twenty times too wide. **The method is not broken. Its assumption is,
-and the method has no way to tell you so.**
+therefore taken over a set that is nearly half signal, so the PSE comes out at
+1.216 against a true shot-to-shot SD of 0.187 m. The margin that follows is
+ME = 3.125 m, where an honest 95% margin on an effect here is
+t₍.₉₇₅,₃₎ × 2σ/√16 = 3.18 × 0.091 = **0.29 m** — about **eleven times** too
+wide. **The method is not broken. Its assumption is, and the method has no way
+to tell you so.**
 
 **Q2.y — the unifying question.** Ask: "Routes 1 and 3 both estimate error from
 the effects. Route 2 estimates it from repeated shots. Why does that matter more
